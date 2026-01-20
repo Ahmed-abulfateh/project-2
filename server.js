@@ -6,6 +6,7 @@ const mongoose = require("mongoose")
 const morgan = require('morgan')
 const authController = require("./controllers/auth.js");
 const indexController = require("./controllers/index.routes.js");
+const productsController = require("./controllers/products.js");
 const session = require('express-session');
 const isSignedIn = require("./middleware/is-signed-in.js");
 const passUserToView = require("./middleware/pass-user-to-view.js");
@@ -70,6 +71,7 @@ app.use('/',indexController)
 // PROTECTED ROUTES:
 app.use(isSignedIn)
 // Everything under the user NEEDS to be logged in to se
+app.use('/products', productsController)
 
 
 
