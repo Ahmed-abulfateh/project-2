@@ -28,12 +28,7 @@ app.use(passUserToView)
 
 
 
-
-
-
-
-
-
+app.set('view engine', 'ejs');
 
 
 
