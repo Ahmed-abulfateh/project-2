@@ -6,17 +6,20 @@ const mongoose = require("mongoose")
 const morgan = require('morgan')
 const authController = require("./controllers/auth.js");
 const indexController = require("./controllers/index.routes.js");
-const productsController = require("./controllers/products.js");
+const productsRoutes = require("./controllers/products.routes.js");
+const ordersRoutes = require("./controllers/orders.routes.js");
 const session = require('express-session');
 const isSignedIn = require("./middleware/is-signed-in.js");
 const passUserToView = require("./middleware/pass-user-to-view.js");
 const methodOverride = require('method-override')
 
-app.use(express.static('public')) // my app will serve all static files from public folder
+// Middleware
+app.use(express.static('public')) 
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan('dev'))
 app.use(methodOverride('_method'))
-// new
+
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -24,56 +27,34 @@ app.use(
     saveUninitialized: true,
   })
 );
+
+
 app.use(passUserToView)
-
-
 
 app.set('view engine', 'ejs');
 
-
-
-async function connectToDB(){ //connection to the database
+async function connectToDB(){
     try{
         await mongoose.connect(process.env.MONGODB_URI)
         console.log("Connected to Database")
     }
     catch(error){
-        console.log("Error Occured",error)
+        console.log("Error Occurred:", error)
     }
 }
-
 
 connectToDB() // connect to database
 
 
+app.use('/auth', authController)
+app.use('/', indexController)
 
 
-
-
-
-
-
-
-
-
-
-
-// Routes go here
-app.use('/auth',authController)
-app.use('/',indexController)
-
-
-// PROTECTED ROUTES:
 app.use(isSignedIn)
-// Everything under the user NEEDS to be logged in to se
-app.use('/products', productsController)
+app.use('/products', productsRoutes);
+app.use('/orders', ordersRoutes);
 
-
-
-
-
-
-
-app.listen(3000,()=>{
-    console.log('App is working')
-}) // Listen on Port 3000
+// Start server
+app.listen(3000, () => {
+    console.log('App is running on http://localhost:3000')
+})
