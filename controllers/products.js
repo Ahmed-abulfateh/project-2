@@ -1,6 +1,6 @@
 const Product = require("../models/Product");
-const StockHistory = require("./models/StockHistory");
-const Review = require("./models/Review");
+const StockHistory = require("../models/StockHistory");
+const Review = require("../models/Review");
 
 // Admin: Create a new product
 async function createProduct(req, res) {

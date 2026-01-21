@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const productsController = require("../controllers/products.js");
-const StockHistory = require("./models/StockHistory");
+const StockHistory = require("../models/StockHistory");
 const isSignedIn = require("../middleware/is-signed-in.js");
 const isAdmin = require("../middleware/is-admin.js");
 
