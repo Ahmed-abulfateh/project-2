@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const User = require("./models/user.js");
+const User = require("../models/User.js");
 const bcrypt = require("bcrypt");
 
 
@@ -58,6 +58,8 @@ router.post("/sign-in", async (req, res) => {
   // If there is other data you want to save to `req.session.user`, do so here!
   req.session.user = {
     username: userInDatabase.username,
+    email: userInDatabase.email,
+    role: userInDatabase.role,
     _id: userInDatabase._id
   };
 
