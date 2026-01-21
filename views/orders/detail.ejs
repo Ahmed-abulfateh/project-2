@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Order Details</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('../navbar.ejs') %>
+  
+  <div class="container">
+    <h1>Order Details</h1>
+    
+    <div class="order-details">
+      <h3>Order ID: <%= order._id %></h3>
+      
+      <div class="order-section">
+        <h4>Items</h4>
+        <table>
+          <thead>
+            <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Price</th>
+             <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% order.items.forEach(item => { %>
+              <tr>
+        <td><%= item.product.name %></td>
+         <td><%= item.quantity %></td>
+        <td>$<%= item.price %></td>
+       <td>$<%= item.price * item.quantity %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="order-section">
+        <h4>Order Information</h4>
+        <p><strong>Total Price:</strong> $<%= order.totalPrice %></p>
+        <p><strong>Delivery Address:</strong> <%= order.deliveryAddress %></p>
+        <p><strong>Order Status:</strong> <span class="status status-<%= order.orderStatus %>"><%= order.orderStatus %></span></p>
+        <p><strong>Delivery Status:</strong> <span class="status status-<%= order.deliveryStatus %>"><%= order.deliveryStatus %></span></p>
+        <p><strong>Ordered On:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
+      </div>
+
+      <a href="/orders" class="btn btn-secondary">Back to Orders</a>
+    </div>
+  </div>
+</body>
+</html>
