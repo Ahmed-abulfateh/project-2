@@ -54,6 +54,7 @@ app.use(isSignedIn)
 app.use('/products', productsRoutes);
 app.use('/orders', ordersRoutes);
 
+
 // Start server
 app.listen(3000, () => {
     console.log('App is running on http://localhost:3000')
