@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up</title>
+  </head>
+  <body>
+    <%- include('../navbar') %>
+    <h1>Create a new account!</h1>
+    <form action="/auth/sign-up" method="post">
+      <label for="username">Username:</label>
+      <input type="text" name="username" id="username" required/>
+      <label for="email">Email:</label>
+      <input type="email" name="email" id="email" required/>
+      <label for="password">Password:</label>
+      <input type="password" name="password" id="password" required/>
+      <label for="confirmPassword">Confirm Password:</label>
+      <input type="password" name="confirmPassword" id="confirmPassword" required/>
+      <label for="role">I want to sign up as:</label>
+      <select name="role" id="role" required>
+        <option value="customer">Customer</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button type="submit">Sign up</button>
+    </form>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Home</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('navbar.ejs') %>
+
+    <div class="container">
+        <h1>Welcome to Our E-Commerce Store AHMAZON</h1>
+        
+        <% if (user) { %>
+            <p>Welcome back, <strong><%= user.username %></strong>!</p>
+            <% if (user.role === 'admin') { %>
+                <div class="admin-home">
+                    <h2>Admin Panel</h2>
+                    <a href="/products/admin/dashboard" class="btn btn-primary">Manage Products</a>
+                    <a href="/orders/admin/dashboard" class="btn btn-primary">Manage Orders</a>
+                    <a href="/products/admin/stock-history" class="btn btn-primary">View Stock History</a>
+                </div>
+            <% } else { %>
+                <div class="customer-home">
+                    <h2>Start Shopping</h2>
+                    <a href="/products" class="btn btn-success">Browse Products</a>
+                    <a href="/orders" class="btn btn-info">My Orders</a>
+                </div>
+            <% } %>
+        <% } else { %>
+            <p>Please sign in to start shopping!</p>
+            <div class="auth-buttons">
+                <a href="/auth/sign-up" class="btn btn-success">Create Account</a>
+                <a href="/auth/sign-in" class="btn btn-primary">Sign In</a>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>

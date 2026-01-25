@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard - Products</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('../navbar.ejs') %>
+  
+  <div class="container">
+    <h1>Admin Dashboard - Manage Products</h1>
+    
+    <form action="/products" method="POST" class="create-product-form">
+      <h3>Add New Product</h3>
+      <input type="text" name="name" placeholder="Product Name" required>
+      <textarea name="description" placeholder="Description" required></textarea>
+      <input type="number" name="price" placeholder="Price" step="0.01" required>
+      <input type="number" name="stock" placeholder="Stock Quantity" required>
+      <button type="submit" class="btn btn-success">Add Product</button>
+    </form>
+
+    <table class="products-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% products.forEach(product => { %>
+          <tr>
+            <td><%= product.name %></td>
+            <td><%= product.description %></td>
+            <td>$<%= product.price %></td>
+            <td><%= product.stock %></td>
+            <td>
+              <a href="/products/<%= product._id %>/edit" class="btn btn-warning">Edit</a>
+              <form action="/products/<%= product._id %>?_method=DELETE" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
