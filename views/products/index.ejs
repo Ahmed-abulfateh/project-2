@@ -16,7 +16,7 @@
       <div style="display: flex; flex-wrap: wrap; gap: 10px;">
         <a href="/products" class="btn <%= selectedCategory === 'All' ? 'btn-primary' : 'btn-secondary' %>" style="text-decoration: none;">All Products</a>
         <% categories.forEach(cat => { %>
-          <a href="/products?category=<%= cat %>" class="btn <%= selectedCategory === cat ? 'btn-primary' : 'btn-secondary' %>" style="text-decoration: none;"><%= cat %></a>
+          <a href="/products?category=<%= encodeURIComponent(cat) %>" class="btn <%= selectedCategory === cat ? 'btn-primary' : 'btn-secondary' %>" style="text-decoration: none;"><%= cat %></a>
         <% }) %>
       </div>
     </div>
