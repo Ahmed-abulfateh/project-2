@@ -111,7 +111,10 @@
       <span style="background-color: #2196f3; color: white; padding: 6px 16px; border-radius: 16px; font-size: 0.95em;"><%= product.category %></span>
     </div>
     <h1><%= product.name %></h1>
-    <p class="description"><%= product.description %></p>
+    <div class="description-container">
+      <p class="description-text description"><%= product.description %></p>
+      <button class="show-more-btn" onclick="toggleDescription(this)" style="display: none;">Show more</button>
+    </div>
     <p class="price">Price: $<%= product.price %></p>
     <p class="stock">Available Stock: <%= product.stock %></p>
     
@@ -185,5 +188,32 @@
     
     <a href="/products" class="btn btn-secondary">Back to Products</a>
   </div>
+  <script>
+    function toggleDescription(btn) {
+      const descText = btn.previousElementSibling;
+      const isExpanded = descText.classList.contains('expanded');
+
+      if (isExpanded) {
+        descText.classList.remove('expanded');
+        btn.textContent = 'Show more';
+      } else {
+        descText.classList.add('expanded');
+        btn.textContent = 'Show less';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const descriptions = document.querySelectorAll('.description-text');
+      descriptions.forEach(desc => {
+        if (desc.scrollHeight > desc.clientHeight + 2) {
+          const btn = desc.nextElementSibling;
+          if (btn && btn.classList.contains('show-more-btn')) {
+            btn.style.display = 'inline-block';
+          }
+        }
+      });
+    });
+  </script>
+
 </body>
 </html>

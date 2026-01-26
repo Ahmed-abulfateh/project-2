@@ -359,6 +359,40 @@ form textarea {
   text-decoration: underline;
 }
 
+/* Description truncation styles */
+.description-container {
+  position: relative;
+}
+
+.description-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.description-text.expanded {
+  -webkit-line-clamp: unset;
+  display: block;
+}
+
+.show-more-btn {
+  color: #007bff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  margin-top: 0.25rem;
+}
+
+.show-more-btn:hover {
+  color: #0056b3;
+}
+
 @media (max-width: 768px) {
   .navbar {
     flex-direction: column;
