@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stock History</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('../navbar.ejs') %>
+  
+  <div class="container">
+    <h1>Stock History</h1>
+    
+    <table class="stock-history-table">
+      <thead>
+        <tr>
+   <th>Product</th>
+  <th>Quantity Change</th>
+ <th>Change Type</th>
+ <th>Admin/Customer</th>
+  <th>Order ID</th>
+   <th>Notes</th>
+ <th>Date</th>
+        </tr>
+  </thead>
+  <tbody>
+  <% history.forEach(record => { %>
+    <tr>
+     <td><%= record.product.name %></td>
+      <td class="<%= record.quantity > 0 ? 'positive' : 'negative' %>">
+      <%= record.quantity > 0 ? '+' : '' %><%= record.quantity %>
+            </td>
+            <td>
+              <span class="change-type change-type-<%= record.changeType.split('-')[0] %>">
+                <%= record.changeType %>
+              </span>
+            </td>
+            <td>
+              <% if (record.adminId) { %>
+                <%= record.adminId.username %> (Admin)
+              <% } else { %>
+                Customer Order
+              <% } %>
+            </td>
+            <td>
+              <% if (record.orderId && record.orderId._id) { %>
+                <a href="/orders/<%= record.orderId._id %>" class="link"><%= record.orderId._id %></a>
+              <% } else if (record.orderId) { %>
+                <%= record.orderId %>
+              <% } else { %>
+                -
+              <% } %>
+     </td>
+   <td><%= record.notes %></td>
+    <td><%= new Date(record.createdAt).toLocaleDateString() %></td>
+  </tr>
+  <% }) %>
+  </tbody>
+  </table>
+  </div>
+</body>
+</html>
