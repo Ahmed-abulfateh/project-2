@@ -16,13 +16,28 @@
       <textarea name="description" placeholder="Description" required></textarea>
       <input type="number" name="price" placeholder="Price" step="0.01" required>
       <input type="number" name="stock" placeholder="Stock Quantity" required>
+      <select name="category" required>
+        <option value="">Select Category</option>
+        <option value="Electronics">Electronics</option>
+        <option value="Clothing">Clothing</option>
+        <option value="Home & Garden">Home & Garden</option>
+        <option value="Sports">Sports</option>
+        <option value="Books">Books</option>
+        <option value="Toys">Toys</option>
+        <option value="Food & Beverages">Food & Beverages</option>
+        <option value="Health & Beauty">Health & Beauty</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="text" name="imageUrl" placeholder="Image URL (optional)">
       <button type="submit" class="btn btn-success">Add Product</button>
     </form>
 
     <table class="products-table">
       <thead>
         <tr>
+          <th>Image</th>
           <th>Name</th>
+          <th>Category</th>
           <th>Description</th>
           <th>Price</th>
           <th>Stock</th>
@@ -32,7 +47,9 @@
       <tbody>
         <% products.forEach(product => { %>
           <tr>
+            <td><img src="<%= product.imageUrl %>" alt="<%= product.name %>" style="width: 80px; height: 60px; object-fit: cover;"></td>
             <td><%= product.name %></td>
+            <td><span style="background-color: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;"><%= product.category %></span></td>
             <td><%= product.description %></td>
             <td>$<%= product.price %></td>
             <td><%= product.stock %></td>

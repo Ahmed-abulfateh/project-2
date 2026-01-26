@@ -104,6 +104,12 @@
   <%- include('../navbar.ejs') %>
   
   <div class="container">
+    <div style="margin-bottom: 30px;">
+      <img src="<%= product.imageUrl %>" alt="<%= product.name %>" style="max-width: 500px; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    </div>
+    <div style="margin-bottom: 15px;">
+      <span style="background-color: #2196f3; color: white; padding: 6px 16px; border-radius: 16px; font-size: 0.95em;"><%= product.category %></span>
+    </div>
     <h1><%= product.name %></h1>
     <p class="description"><%= product.description %></p>
     <p class="price">Price: $<%= product.price %></p>

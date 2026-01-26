@@ -31,6 +31,32 @@
         <input type="number" id="stock" name="stock" value="<%= product.stock %>" required>
       </div>
 
+      <div class="form-group">
+        <label for="category">Category</label>
+        <select id="category" name="category" required>
+          <option value="Electronics" <%= product.category === 'Electronics' ? 'selected' : '' %>>Electronics</option>
+          <option value="Clothing" <%= product.category === 'Clothing' ? 'selected' : '' %>>Clothing</option>
+          <option value="Home & Garden" <%= product.category === 'Home & Garden' ? 'selected' : '' %>>Home & Garden</option>
+          <option value="Sports" <%= product.category === 'Sports' ? 'selected' : '' %>>Sports</option>
+          <option value="Books" <%= product.category === 'Books' ? 'selected' : '' %>>Books</option>
+          <option value="Toys" <%= product.category === 'Toys' ? 'selected' : '' %>>Toys</option>
+          <option value="Food & Beverages" <%= product.category === 'Food & Beverages' ? 'selected' : '' %>>Food & Beverages</option>
+          <option value="Health & Beauty" <%= product.category === 'Health & Beauty' ? 'selected' : '' %>>Health & Beauty</option>
+          <option value="Other" <%= product.category === 'Other' ? 'selected' : '' %>>Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="imageUrl">Image URL</label>
+        <input type="text" id="imageUrl" name="imageUrl" value="<%= product.imageUrl %>">
+        <small style="display: block; color: #666; margin-top: 5px;">Enter a direct URL to an image</small>
+      </div>
+
+      <div class="form-group">
+        <label>Current Image Preview</label>
+        <img src="<%= product.imageUrl %>" alt="<%= product.name %>" style="max-width: 300px; height: auto; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px;">
+      </div>
+
       <button type="submit" class="btn btn-success">Update Product</button>
       <a href="/products/admin/dashboard" class="btn btn-secondary">Cancel</a>
     </form>

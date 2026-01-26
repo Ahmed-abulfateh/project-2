@@ -5,13 +5,15 @@ const Review = require("../models/Review");
 // Admin: Create a new product
 async function createProduct(req, res) {
   try {
-    const { name, description, price, stock } = req.body;
+    const { name, description, price, stock, imageUrl, category } = req.body;
     
     const newProduct = new Product({
       name,
       description,
       price,
       stock,
+      category: category || "Other",
+      imageUrl: imageUrl || "https://via.placeholder.com/400x300?text=No+Image",
       createdBy: req.session.user._id,
     });
 
@@ -26,8 +28,11 @@ async function createProduct(req, res) {
 // Get all products (for customers)
 async function getProducts(req, res) {
   try {
-    const products = await Product.find();
-    res.render("products/index.ejs", { products });
+    const { category } = req.query;
+    const filter = category ? { category } : {};
+    const products = await Product.find(filter);
+    const categories = await Product.distinct("category");
+    res.render("products/index.ejs", { products, categories, selectedCategory: category || "All" });
   } catch (error) {
     console.log(error);
     res.send(error);
@@ -80,7 +85,7 @@ async function getEditProduct(req, res) {
 // Admin: Update product
 async function updateProduct(req, res) {
   try {
-    const { name, description, price, stock } = req.body;
+    const { name, description, price, stock, imageUrl, category } = req.body;
     const product = await Product.findById(req.params.id);
     
     // Track stock change if stock was modified
@@ -99,7 +104,7 @@ async function updateProduct(req, res) {
     
     await Product.findByIdAndUpdate(
       req.params.id,
-      { name, description, price, stock },
+      { name, description, price, stock, imageUrl, category },
       { new: true }
     );
 

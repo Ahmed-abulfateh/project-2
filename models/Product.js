@@ -18,6 +18,16 @@ const productSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
+  category: {
+    type: String,
+    required: true,
+    enum: ["Electronics", "Clothing", "Home & Garden", "Sports", "Books", "Toys", "Food & Beverages", "Health & Beauty", "Other"],
+    default: "Other",
+  },
+  imageUrl: {
+    type: String,
+    default: "https://via.placeholder.com/400x300?text=No+Image",
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
