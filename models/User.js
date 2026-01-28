@@ -23,6 +23,18 @@ const userSchema = new mongoose.Schema({
     enum: ["admin", "customer"],
     default: "customer",
   },
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+    default: null,
+  },
+  verificationTokenExpires: {
+    type: Date,
+    default: null,
+  },
 }, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);
