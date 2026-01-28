@@ -1,6 +1,8 @@
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 const StockHistory = require("../models/StockHistory");
+const User = require("../models/User");
+const { sendOrderAcceptedEmail, sendDeliveryStatusEmail } = require("../utils/email");
 
 // Customer: Create new order from cart
 async function createOrder(req, res) {
@@ -98,18 +100,20 @@ async function getAllOrders(req, res) {
 // Admin: Accept order
 async function acceptOrder(req, res) {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id)
+      .populate("customer")
+      .populate("items.product");
     
     // Update product stock and create history
     for (const item of order.items) {
       await Product.findByIdAndUpdate(
-        item.product,
+        item.product._id,
         { $inc: { stock: -item.quantity } }
       );
       
       // Record stock change in history
       await StockHistory.create({
-        product: item.product,
+        product: item.product._id,
         quantity: -item.quantity,
         changeType: "customer-order",
         orderId: order._id,
@@ -122,6 +126,25 @@ async function acceptOrder(req, res) {
       { orderStatus: "accepted" },
       { new: true }
     );
+
+    // Send email to customer
+    try {
+      await sendOrderAcceptedEmail(order.customer.email, {
+        orderId: order._id,
+        orderDate: new Date(order.createdAt).toLocaleDateString(),
+        deliveryAddress: order.deliveryAddress,
+        items: order.items.map(item => ({
+          productName: item.product.name,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        totalPrice: order.totalPrice.toFixed(2)
+      });
+    } catch (emailError) {
+      console.log("Failed to send order acceptance email:", emailError);
+      // Continue even if email fails
+    }
+
     res.redirect("/products");
   } catch (error) {
     console.log(error);
@@ -170,11 +193,23 @@ async function updateDeliveryStatus(req, res) {
   try {
     const { deliveryStatus } = req.body;
     
-    await Order.findByIdAndUpdate(
+    const order = await Order.findByIdAndUpdate(
       req.params.id,
       { deliveryStatus },
       { new: true }
-    );
+    ).populate("customer");
+
+    // Send email to customer about delivery status change
+    try {
+      await sendDeliveryStatusEmail(order.customer.email, {
+        orderId: order._id,
+        deliveryStatus: order.deliveryStatus,
+        deliveryAddress: order.deliveryAddress
+      });
+    } catch (emailError) {
+      console.log("Failed to send delivery status email:", emailError);
+      // Continue even if email fails
+    }
     
     res.redirect("/orders/admin/dashboard");
   } catch (error) {

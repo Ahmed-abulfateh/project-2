@@ -159,4 +159,129 @@ const sendUsernameEmail = async (email, username) => {
   return transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendVerificationEmail, sendOrderConfirmationEmail, sendPasswordResetEmail, sendEmailChangeVerification, sendUsernameEmail };
+const sendOrderAcceptedEmail = async (email, orderDetails) => {
+  const itemsList = orderDetails.items.map(item => 
+    `<tr>
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.productName}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">$${item.price}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
+    </tr>`
+  ).join('');
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: `Order Accepted - Order ID: ${orderDetails.orderId}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+        <div style="background-color: white; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <h2 style="color: #28a745; margin-bottom: 15px;">✓ Your Order Has Been Accepted!</h2>
+          <p style="color: #666; font-size: 16px; margin-bottom: 20px;">Great news! Your order has been accepted and is being prepared for shipment.</p>
+          
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <p style="margin: 5px 0;"><strong>Order ID:</strong> ${orderDetails.orderId}</p>
+            <p style="margin: 5px 0;"><strong>Order Date:</strong> ${orderDetails.orderDate}</p>
+            <p style="margin: 5px 0;"><strong>Delivery Address:</strong> ${orderDetails.deliveryAddress}</p>
+          </div>
+          
+          <h3 style="color: #333; margin-top: 20px;">Order Items:</h3>
+          <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+            <thead>
+              <tr style="background-color: #f0f0f0;">
+                <th style="padding: 10px; text-align: left;">Product</th>
+                <th style="padding: 10px; text-align: center;">Qty</th>
+                <th style="padding: 10px; text-align: right;">Price</th>
+                <th style="padding: 10px; text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsList}
+            </tbody>
+            <tfoot>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="3" style="padding: 15px; text-align: right;">Total Amount:</td>
+                <td style="padding: 15px; text-align: right;">$${orderDetails.totalPrice}</td>
+              </tr>
+            </tfoot>
+          </table>
+          
+          <p style="color: #666; margin-top: 20px;">Your order will be shipped soon. You'll receive another email with tracking information once it's dispatched.</p>
+          
+          <p style="color: #999; font-size: 13px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+            Thank you for shopping with us!<br>
+            If you have any questions, please don't hesitate to contact our support team.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
+const sendDeliveryStatusEmail = async (email, orderDetails) => {
+  let statusMessage = '';
+  let statusColor = '';
+  let statusIcon = '';
+  
+  switch(orderDetails.deliveryStatus) {
+    case 'in-transit':
+      statusMessage = 'Your order is on its way!';
+      statusColor = '#007bff';
+      statusIcon = '🚚';
+      break;
+    case 'delivered':
+      statusMessage = 'Your order has been delivered!';
+      statusColor = '#28a745';
+      statusIcon = '✓';
+      break;
+    case 'not-shipped':
+      statusMessage = 'Your order is being prepared';
+      statusColor = '#6c757d';
+      statusIcon = '📦';
+      break;
+    default:
+      statusMessage = 'Order status updated';
+      statusColor = '#6c757d';
+      statusIcon = 'ℹ';
+  }
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: `Delivery Update - Order ID: ${orderDetails.orderId}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+        <div style="background-color: white; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <h2 style="color: ${statusColor}; margin-bottom: 15px;">${statusIcon} ${statusMessage}</h2>
+          <p style="color: #666; font-size: 16px; margin-bottom: 20px;">Your order status has been updated.</p>
+          
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <p style="margin: 5px 0;"><strong>Order ID:</strong> ${orderDetails.orderId}</p>
+            <p style="margin: 5px 0;"><strong>Delivery Status:</strong> <span style="color: ${statusColor}; font-weight: bold;">${orderDetails.deliveryStatus.toUpperCase().replace('-', ' ')}</span></p>
+            <p style="margin: 5px 0;"><strong>Delivery Address:</strong> ${orderDetails.deliveryAddress}</p>
+          </div>
+          
+          ${orderDetails.deliveryStatus === 'delivered' ? 
+            `<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
+              <p style="color: #155724; margin: 0;">Thank you for your purchase! We hope you enjoy your order.</p>
+            </div>` : 
+            orderDetails.deliveryStatus === 'in-transit' ?
+            `<p style="color: #666;">Your order is currently in transit and will be delivered soon to your address.</p>` :
+            `<p style="color: #666;">We'll notify you once your order is shipped.</p>`
+          }
+          
+          <p style="color: #999; font-size: 13px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+            Thank you for shopping with us!<br>
+            If you have any questions about your delivery, please contact our support team.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendVerificationEmail, sendOrderConfirmationEmail, sendPasswordResetEmail, sendEmailChangeVerification, sendUsernameEmail, sendOrderAcceptedEmail, sendDeliveryStatusEmail };
