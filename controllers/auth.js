@@ -207,6 +207,9 @@ router.get("/change-email", (req, res) => {
   if (!req.session.user) {
     return res.redirect("/auth/sign-in");
   }
+  if (req.session.user.isEmailVerified) {
+    return res.send("You cannot change your email address once it has been verified. <a href='/'>Back to Home</a>");
+  }
   res.render("auth/change-email.ejs", { user: req.session.user });
 });
 
@@ -214,6 +217,11 @@ router.post("/change-email", async (req, res) => {
   try {
     if (!req.session.user) {
       return res.redirect("/auth/sign-in");
+    }
+
+    // Prevent email change if already verified
+    if (req.session.user.isEmailVerified) {
+      return res.send("You cannot change your email address once it has been verified. <a href='/'>Back to Home</a>");
     }
 
     const { newEmail } = req.body;

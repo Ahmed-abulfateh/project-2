@@ -14,7 +14,11 @@ router.get("/admin/stock-history", isSignedIn, isAdmin, async (req, res) => {
       .populate("adminId")
       .populate({
         path: "orderId",
-        model: "Order"
+        model: "Order",
+        populate: {
+          path: "customer",
+          model: "User"
+        }
       })
       .sort({ createdAt: -1 });
 

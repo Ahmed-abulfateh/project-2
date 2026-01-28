@@ -176,6 +176,7 @@
           <th>Quantity Change</th>
           <th>Change Type</th>
           <th>Admin/Customer</th>
+          <th>Username</th>
           <th>Order ID</th>
           <th>Notes</th>
           <th>Date</th>
@@ -200,6 +201,15 @@
                 <%= record.adminId.username %> (Admin)
               <% } else { %>
                 Customer Order
+              <% } %>
+            </td>
+            <td>
+              <% if (record.orderId && record.orderId.customer) { %>
+                <%= record.orderId.customer.username %>
+              <% } else if (record.adminId) { %>
+                -
+              <% } else { %>
+                N/A
               <% } %>
             </td>
             <td>
