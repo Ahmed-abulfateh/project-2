@@ -35,6 +35,26 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  passwordResetToken: {
+    type: String,
+    default: null,
+  },
+  passwordResetExpires: {
+    type: Date,
+    default: null,
+  },
+  emailChangeToken: {
+    type: String,
+    default: null,
+  },
+  emailChangeTokenExpires: {
+    type: Date,
+    default: null,
+  },
+  newEmail: {
+    type: String,
+    default: null,
+  },
 }, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);

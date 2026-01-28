@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require("../models/User.js");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const { sendVerificationEmail } = require("../utils/email.js");
+const { sendVerificationEmail, sendPasswordResetEmail, sendEmailChangeVerification } = require("../utils/email.js");
 
 
 // Sign up routes
@@ -66,11 +66,6 @@ router.post("/sign-in", async (req, res) => {
     return res.send("Login failed. Please try again.");
   }
 
-  // Check if email is verified
-  if (!userInDatabase.isEmailVerified) {
-    return res.send("Please verify your email before signing in. Check your email for verification link. <a href='/auth/sign-in'>Back to Sign In</a>");
-  }
-
   // There is a user! Time to test their password with bcrypt
   const validPassword = bcrypt.compareSync(
     req.body.password,
@@ -87,7 +82,8 @@ router.post("/sign-in", async (req, res) => {
     username: userInDatabase.username,
     email: userInDatabase.email,
     role: userInDatabase.role,
-    _id: userInDatabase._id
+    _id: userInDatabase._id,
+    isEmailVerified: userInDatabase.isEmailVerified
   };
 
   res.redirect("/");
@@ -120,6 +116,171 @@ router.get("/verify-email/:token", async (req, res) => {
   } catch (error) {
     console.log(error);
     res.send("Verification failed. Please try again. <a href='/auth/sign-up'>Create new account</a>");
+  }
+});
+
+// Forgot Password - Request
+router.get("/forgot-password", (req, res) => {
+  res.render("auth/forgot-password.ejs");
+});
+
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.send("If an account with that email exists, a password reset link has been sent. <a href='/auth/sign-in'>Back to Sign In</a>");
+    }
+
+    // Generate password reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.passwordResetToken = resetToken;
+    user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.save();
+
+    // Send reset email
+    try {
+      const resetLink = `${process.env.BASE_URL}/auth/reset-password/${resetToken}`;
+      await sendPasswordResetEmail(user.email, resetLink);
+      res.send("Password reset link has been sent to your email. <a href='/auth/sign-in'>Back to Sign In</a>");
+    } catch (error) {
+      console.log("Email sending error:", error);
+      res.send("Error sending reset email. Please try again later. <a href='/auth/forgot-password'>Try Again</a>");
+    }
+  } catch (error) {
+    console.log(error);
+    res.send("An error occurred. Please try again. <a href='/auth/forgot-password'>Try Again</a>");
+  }
+});
+
+// Reset Password
+router.get("/reset-password/:token", async (req, res) => {
+  try {
+    const user = await User.findOne({
+      passwordResetToken: req.params.token,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.send("Invalid or expired reset token. <a href='/auth/forgot-password'>Request new link</a>");
+    }
+
+    res.render("auth/reset-password.ejs", { token: req.params.token });
+  } catch (error) {
+    console.log(error);
+    res.send("Error loading reset page. <a href='/auth/forgot-password'>Try Again</a>");
+  }
+});
+
+router.post("/reset-password/:token", async (req, res) => {
+  try {
+    const { password, confirmPassword } = req.body;
+
+    if (password !== confirmPassword) {
+      return res.send("Passwords do not match. <a href='/auth/reset-password/" + req.params.token + "'>Try Again</a>");
+    }
+
+    const user = await User.findOne({
+      passwordResetToken: req.params.token,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.send("Invalid or expired reset token. <a href='/auth/forgot-password'>Request new link</a>");
+    }
+
+    // Update password
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    user.password = hashedPassword;
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+    await user.save();
+
+    res.send("Password reset successfully! <a href='/auth/sign-in'>Sign in</a>");
+  } catch (error) {
+    console.log(error);
+    res.send("Error resetting password. Please try again. <a href='/auth/forgot-password'>Request new link</a>");
+  }
+});
+
+// Change Email
+router.get("/change-email", (req, res) => {
+  if (!req.session.user) {
+    return res.redirect("/auth/sign-in");
+  }
+  res.render("auth/change-email.ejs", { user: req.session.user });
+});
+
+router.post("/change-email", async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.redirect("/auth/sign-in");
+    }
+
+    const { newEmail } = req.body;
+    const user = await User.findById(req.session.user._id);
+
+    // Check if new email is already taken
+    const emailExists = await User.findOne({ email: newEmail });
+    if (emailExists) {
+      return res.send("Email already in use. <a href='/'>Back</a>");
+    }
+
+    // Generate email change token
+    const changeToken = crypto.randomBytes(32).toString("hex");
+    user.emailChangeToken = changeToken;
+    user.emailChangeTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    user.newEmail = newEmail;
+    await user.save();
+
+    // Send verification email to new email address
+    try {
+      const changeLink = `${process.env.BASE_URL}/auth/verify-email-change/${changeToken}`;
+      await sendEmailChangeVerification(newEmail, changeLink);
+      res.send("Verification link sent to your new email address. Please verify within 24 hours. <a href='/'>Back</a>");
+    } catch (error) {
+      console.log("Email sending error:", error);
+      res.send("Error sending verification email. Please try again. <a href='/auth/change-email'>Try Again</a>");
+    }
+  } catch (error) {
+    console.log(error);
+    res.send("Error requesting email change. Please try again. <a href='/auth/change-email'>Try Again</a>");
+  }
+});
+
+// Verify Email Change
+router.get("/verify-email-change/:token", async (req, res) => {
+  try {
+    const user = await User.findOne({
+      emailChangeToken: req.params.token,
+      emailChangeTokenExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.send("Invalid or expired email change token. <a href='/auth/change-email'>Request new link</a>");
+    }
+
+    // Update email
+    user.email = user.newEmail;
+    user.isEmailVerified = true;
+    user.emailChangeToken = null;
+    user.emailChangeTokenExpires = null;
+    user.newEmail = null;
+    await user.save();
+
+    // Update session
+    req.session.user.email = user.email;
+    req.session.user.isEmailVerified = true;
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    res.send("Email changed successfully! <a href='/'>Back to Home</a>");
+  } catch (error) {
+    console.log(error);
+    res.send("Error changing email. Please try again. <a href='/auth/change-email'>Request new link</a>");
   }
 });
 

@@ -66,4 +66,68 @@ const sendOrderConfirmationEmail = async (email, orderDetails) => {
   return transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendVerificationEmail, sendOrderConfirmationEmail };
+const sendPasswordResetEmail = async (email, resetLink) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Password Reset Request",
+    html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+        <div style="background-color: white; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-bottom: 15px;">Password Reset Request</h2>
+          <p style="color: #666; font-size: 16px; margin-bottom: 20px;">We received a request to reset your password. Click the link below to reset it.</p>
+          
+          <a href="${resetLink}" style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; margin: 20px 0;">
+            Reset Password
+          </a>
+          
+          <p style="color: #999; font-size: 14px; margin-top: 20px;">
+            Or copy and paste this link in your browser:<br>
+            <span style="word-break: break-all;">${resetLink}</span>
+          </p>
+          
+          <p style="color: #999; font-size: 13px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+            This reset link expires in 1 hour.<br>
+            If you didn't request this, please ignore this email.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
+const sendEmailChangeVerification = async (email, changeLink) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Verify Your New Email Address",
+    html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+        <div style="background-color: white; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-bottom: 15px;">Verify Your New Email</h2>
+          <p style="color: #666; font-size: 16px; margin-bottom: 20px;">Please verify your new email address by clicking the link below.</p>
+          
+          <a href="${changeLink}" style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; margin: 20px 0;">
+            Verify New Email
+          </a>
+          
+          <p style="color: #999; font-size: 14px; margin-top: 20px;">
+            Or copy and paste this link in your browser:<br>
+            <span style="word-break: break-all;">${changeLink}</span>
+          </p>
+          
+          <p style="color: #999; font-size: 13px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+            This verification link expires in 24 hours.<br>
+            If you didn't request this, please ignore this email.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendVerificationEmail, sendOrderConfirmationEmail, sendPasswordResetEmail, sendEmailChangeVerification };
