@@ -1,7 +1,7 @@
 <nav class="navbar">
   <div class="navbar-container">
     <div class="navbar-brand">
-      <a href="/" class="logo">🛍️ Ahmaozn</a>
+      <a href="/" class="logo">🛍️ Ahmazon</a>
     </div>
 
     <div class="navbar-menu">
@@ -172,7 +172,8 @@
 }
 
 .dropdown-content {
-  display: none;
+  visibility: hidden;
+  opacity: 0;
   position: absolute;
   right: 0;
   background-color: #16213e;
@@ -181,8 +182,9 @@
   z-index: 1001;
   border-radius: 4px;
   overflow: hidden;
-  top: 100%;
-  margin-top: 0.5rem;
+  top: calc(100% + 0.5rem);
+  margin-top: 0;
+  transition: visibility 0.2s, opacity 0.2s ease-in-out;
 }
 
 .dropdown-content a {
@@ -200,7 +202,8 @@
 }
 
 .user-dropdown:hover .dropdown-content {
-  display: block;
+  visibility: visible;
+  opacity: 1;
 }
 
 .nav-auth {
