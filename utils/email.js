@@ -130,4 +130,33 @@ const sendEmailChangeVerification = async (email, changeLink) => {
   return transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendVerificationEmail, sendOrderConfirmationEmail, sendPasswordResetEmail, sendEmailChangeVerification };
+const sendUsernameEmail = async (email, username) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Your Username",
+    html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+        <div style="background-color: white; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-bottom: 15px;">Your Username</h2>
+          <p style="color: #666; font-size: 16px; margin-bottom: 20px;">You requested to retrieve your username.</p>
+          
+          <div style="background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center;">
+            <p style="color: #666; margin-bottom: 10px;">Your username is:</p>
+            <p style="color: #007bff; font-size: 24px; font-weight: bold; margin: 0;">${username}</p>
+          </div>
+          
+          <p style="color: #666;">You can now use this username to sign in to your account.</p>
+          
+          <p style="color: #999; font-size: 13px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+            If you didn't request this, please ignore this email or contact support if you have concerns.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendVerificationEmail, sendOrderConfirmationEmail, sendPasswordResetEmail, sendEmailChangeVerification, sendUsernameEmail };

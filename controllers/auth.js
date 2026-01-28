@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require("../models/User.js");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const { sendVerificationEmail, sendPasswordResetEmail, sendEmailChangeVerification } = require("../utils/email.js");
+const { sendVerificationEmail, sendPasswordResetEmail, sendEmailChangeVerification, sendUsernameEmail } = require("../utils/email.js");
 
 
 // Sign up routes
@@ -199,6 +199,34 @@ router.post("/reset-password/:token", async (req, res) => {
   } catch (error) {
     console.log(error);
     res.send("Error resetting password. Please try again. <a href='/auth/forgot-password'>Request new link</a>");
+  }
+});
+
+// Forgot Username
+router.get("/forgot-username", (req, res) => {
+  res.render("auth/forgot-username.ejs");
+});
+
+router.post("/forgot-username", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return res.send("If an account with that email exists, the username has been sent. <a href='/auth/sign-in'>Back to Sign In</a>");
+    }
+
+    // Send username email
+    try {
+      await sendUsernameEmail(user.email, user.username);
+      res.send("Username has been sent to your email. <a href='/auth/sign-in'>Back to Sign In</a>");
+    } catch (error) {
+      console.log("Email sending error:", error);
+      res.send("Error sending email. Please try again later. <a href='/auth/forgot-username'>Try Again</a>");
+    }
+  } catch (error) {
+    console.log(error);
+    res.send("An error occurred. Please try again. <a href='/auth/forgot-username'>Try Again</a>");
   }
 });
 
