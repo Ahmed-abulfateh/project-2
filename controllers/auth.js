@@ -284,4 +284,42 @@ router.get("/verify-email-change/:token", async (req, res) => {
   }
 });
 
+// Address Profile Routes
+router.get("/address-profile", (req, res) => {
+  if (!req.session.user) {
+    return res.redirect("/auth/sign-in");
+  }
+  res.render("auth/address-profile.ejs");
+});
+
+router.post("/address-profile", async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.redirect("/auth/sign-in");
+    }
+
+    const user = await User.findById(req.session.user._id);
+    if (!user) {
+      return res.send("User not found. <a href='/auth/sign-in'>Sign In</a>");
+    }
+
+    user.address = req.body.address;
+    await user.save();
+
+    // Update session
+    req.session.user.address = user.address;
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    res.send("Address saved successfully! <a href='/'>Back to Home</a>");
+  } catch (error) {
+    console.log(error);
+    res.send("Error saving address. Please try again. <a href='/auth/address-profile'>Back</a>");
+  }
+});
+
 module.exports = router;

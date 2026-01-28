@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Address Profile</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .auth-container {
+      max-width: 400px;
+      margin: 50px auto;
+      padding: 30px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .auth-container h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0,123,255,0.25);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      margin-top: 10px;
+    }
+
+    .btn-secondary:hover {
+      background-color: #5a6268;
+    }
+
+    .info-text {
+      font-size: 14px;
+      color: #666;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    .current-address {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-left: 4px solid #007bff;
+      border-radius: 4px;
+    }
+
+    .current-address h3 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+
+    .current-address p {
+      margin: 0;
+      color: #666;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+  <%- include('../navbar.ejs') %>
+  
+  <div class="auth-container">
+    <h1>Address Profile</h1>
+    
+    <% if (user.address) { %>
+      <div class="current-address">
+        <h3>Current Address:</h3>
+        <p><%= user.address %></p>
+      </div>
+    <% } %>
+
+    <form action="/auth/address-profile" method="POST">
+      <div class="form-group">
+        <label for="address">Delivery Address</label>
+        <textarea id="address" name="address" placeholder="Enter your full delivery address..." required><%= user.address %></textarea>
+        <p class="info-text">This address will be used for order deliveries</p>
+      </div>
+
+      <button type="submit" class="btn">Save Address</button>
+      <a href="/" class="btn btn-secondary" style="text-align: center; text-decoration: none; display: inline-block;">Back to Home</a>
+    </form>
+  </div>
+</body>
+</html>

@@ -120,6 +120,40 @@
     .btn-secondary:hover {
       background-color: #545b62;
     }
+
+    .address-options {
+      margin: 15px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+    }
+
+    .address-option {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .address-option input[type="radio"] {
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .address-option label {
+      cursor: pointer;
+      display: inline;
+      margin-bottom: 0;
+      font-weight: normal;
+    }
+
+    .address-text {
+      margin-left: 25px;
+      color: #666;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
   </style>
 </head>
 <body>
@@ -170,9 +204,27 @@
         <div class="cart-total">Total: $<%= totalPrice.toFixed(2) %></div>
         
         <form action="/orders" method="POST" class="checkout-form">
-          <div class="form-group">
+          <h2>Delivery Address</h2>
+          
+          <% if (user.address) { %>
+            <div class="address-options">
+              <h3>Select Address</h3>
+              <div class="address-option">
+                <input type="radio" id="savedAddress" name="addressOption" value="saved" checked>
+                <label for="savedAddress">Use Saved Address from Profile</label>
+                <div class="address-text"><%= user.address %></div>
+              </div>
+              
+              <div class="address-option">
+                <input type="radio" id="newAddress" name="addressOption" value="new">
+                <label for="newAddress">Enter New Address</label>
+              </div>
+            </div>
+          <% } %>
+          
+          <div class="form-group" id="deliveryAddressGroup">
             <label for="deliveryAddress">Delivery Address *</label>
-            <textarea id="deliveryAddress" name="deliveryAddress" required placeholder="Enter your delivery address"></textarea>
+            <textarea id="deliveryAddress" name="deliveryAddress" placeholder="Enter your delivery address"><% if (user.address) { %><%= user.address %><% } %></textarea>
           </div>
           
           <div class="button-group">
@@ -186,5 +238,28 @@
       </div>
     <% } %>
   </div>
+
+  <script>
+    // Handle address option switching
+    const addressOptions = document.querySelectorAll('input[name="addressOption"]');
+    const deliveryAddressField = document.getElementById('deliveryAddress');
+    const savedAddressText = '<%= user.address %>';
+
+    if (addressOptions.length > 0) {
+      addressOptions.forEach(option => {
+        option.addEventListener('change', function() {
+          if (this.value === 'saved') {
+            deliveryAddressField.value = savedAddressText;
+            deliveryAddressField.readOnly = true;
+            deliveryAddressField.style.backgroundColor = '#f0f0f0';
+          } else {
+            deliveryAddressField.value = '';
+            deliveryAddressField.readOnly = false;
+            deliveryAddressField.style.backgroundColor = 'white';
+          }
+        });
+      });
+    }
+  </script>
 </body>
 </html>

@@ -29,6 +29,7 @@ const orderSchema = new mongoose.Schema({
   },
   deliveryAddress: {
     type: String,
+    ref: "User",
     required: true,
   },
   orderStatus: {
