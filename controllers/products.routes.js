@@ -17,7 +17,34 @@ router.get("/admin/stock-history", isSignedIn, isAdmin, async (req, res) => {
         model: "Order"
       })
       .sort({ createdAt: -1 });
-    res.render("stock/history.ejs", { history });
+
+    // Calculate category totals and profits
+    const categoryTotals = {};
+    let totalProfit = 0;
+
+    history.forEach(record => {
+      if (record.product && record.product.category) {
+        const category = record.product.category;
+        
+        if (!categoryTotals[category]) {
+          categoryTotals[category] = {
+            quantity: 0,
+            profit: 0
+          };
+        }
+
+        categoryTotals[category].quantity += record.quantity;
+
+        // Calculate profit: only for customer orders (sales)
+        if (record.changeType === "customer-order") {
+          const profit = Math.abs(record.quantity) * record.product.price;
+          categoryTotals[category].profit += profit;
+          totalProfit += profit;
+        }
+      }
+    });
+
+    res.render("stock/history.ejs", { history, categoryTotals, totalProfit });
   } catch (error) {
     console.log(error);
     res.send(error);

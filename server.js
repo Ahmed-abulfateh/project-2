@@ -36,17 +36,29 @@ app.use(cartMiddleware)
 
 app.set('view engine', 'ejs');
 
-async function connectToDB(){
-    try{
-        await mongoose.connect(process.env.MONGODB_URI)
-        console.log("Connected to Database")
-    }
-    catch(error){
-        console.log("Error Occurred:", error)
-    }
+const PORT = process.env.PORT || 3000;
+const { MONGODB_URI } = process.env;
+
+async function startServer() {
+  if (!MONGODB_URI) {
+    console.error("MONGODB_URI is not set in the environment. Add it to your .env file.");
+    process.exit(1);
+  }
+
+  try {
+    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
+    console.log("Connected to Database");
+
+    app.listen(PORT, () => {
+      console.log(`App is running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to connect to MongoDB:", error.message);
+    process.exit(1);
+  }
 }
 
-connectToDB() // connect to database
+startServer();
 
 
 app.use('/auth', authController)
@@ -57,8 +69,3 @@ app.use(isSignedIn)
 app.use('/cart', cartRoutes);
 app.use('/products', productsRoutes);
 app.use('/orders', ordersRoutes);
-
-// Start server
-app.listen(3000, () => {
-    console.log('App is running on http://localhost:3000')
-})
