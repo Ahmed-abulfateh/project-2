@@ -76,7 +76,7 @@ router.get("/admin/stock-history/download", isSignedIn, isAdmin, async (req, res
     const excelData = history.map(record => ({
       'Product Name': record.product ? record.product.name : 'N/A',
       'Category': record.product ? record.product.category : 'N/A',
-      'Price': record.product ? `$${record.product.price.toFixed(2)}` : 'N/A',
+      'Price': record.product ? record.product.price.toFixed(2) : 'N/A',
       'Quantity Change': record.quantity,
       'Change Type': record.changeType,
       'Admin/User': record.adminId ? `${record.adminId.username} (Admin)` : 'Customer Order',
