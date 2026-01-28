@@ -54,6 +54,58 @@ router.get("/admin/stock-history", isSignedIn, isAdmin, async (req, res) => {
     res.send(error);
   }
 });
+
+router.get("/admin/stock-history/download", isSignedIn, isAdmin, async (req, res) => {
+  try {
+    const XLSX = require('xlsx');
+    
+    const history = await StockHistory.find()
+      .populate("product")
+      .populate("adminId")
+      .populate({
+        path: "orderId",
+        model: "Order",
+        populate: {
+          path: "customer",
+          model: "User"
+        }
+      })
+      .sort({ createdAt: -1 });
+
+    // Prepare data for Excel
+    const excelData = history.map(record => ({
+      'Product Name': record.product ? record.product.name : 'N/A',
+      'Category': record.product ? record.product.category : 'N/A',
+      'Price': record.product ? `$${record.product.price.toFixed(2)}` : 'N/A',
+      'Quantity Change': record.quantity,
+      'Change Type': record.changeType,
+      'Admin/User': record.adminId ? `${record.adminId.username} (Admin)` : 'Customer Order',
+      'Customer Username': record.orderId && record.orderId.customer ? record.orderId.customer.username : '-',
+      'Order ID': record.orderId && record.orderId._id ? record.orderId._id.toString() : '-',
+      'Notes': record.notes || '-',
+      'Date': new Date(record.createdAt).toLocaleDateString()
+    }));
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(excelData);
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Stock History");
+
+    // Generate buffer
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+    // Set headers for download
+    res.setHeader('Content-Disposition', 'attachment; filename=stock-history.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buf);
+  } catch (error) {
+    console.log(error);
+    res.send("Error generating Excel file");
+  }
+});
+
 router.post("/", isSignedIn, isAdmin, productsController.createProduct);
 router.put("/:id", isSignedIn, isAdmin, productsController.updateProduct);
 router.delete("/:id", isSignedIn, isAdmin, productsController.deleteProduct);

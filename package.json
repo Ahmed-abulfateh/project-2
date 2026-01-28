@@ -20,7 +20,8 @@
     "method-override": "^3.0.0",
     "mongoose": "^9.1.2",
     "morgan": "^1.10.1",
-    "nodemailer": "^7.0.13"
+    "nodemailer": "^7.0.13",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
