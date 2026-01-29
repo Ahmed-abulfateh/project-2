@@ -15,9 +15,79 @@ const passUserToView = require("./middleware/pass-user-to-view.js");
 const cartMiddleware = require("./middleware/cart.js");
 const methodOverride = require('method-override');
 
+// Security Middleware - Set secure headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  res.removeHeader('X-Powered-By');
+  next();
+});
+
+// Rate limiting for auth routes
+const authAttempts = new Map();
+const AUTH_LIMIT = 5;
+const AUTH_WINDOW = 15 * 60 * 1000; // 15 minutes
+
+const rateLimiter = (req, res, next) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  
+  if (!authAttempts.has(ip)) {
+    authAttempts.set(ip, []);
+  }
+  
+  const attempts = authAttempts.get(ip);
+  const recentAttempts = attempts.filter(time => now - time < AUTH_WINDOW);
+  
+  if (recentAttempts.length >= AUTH_LIMIT) {
+    return res.status(429).send('Too many attempts. Please try again later. <a href="/">Back</a>');
+  }
+  
+  recentAttempts.push(now);
+  authAttempts.set(ip, recentAttempts);
+  
+  // Cleanup old entries periodically
+  if (Math.random() < 0.01) {
+    for (const [key, times] of authAttempts.entries()) {
+      const filtered = times.filter(time => now - time < AUTH_WINDOW);
+      if (filtered.length === 0) {
+        authAttempts.delete(key);
+      } else {
+        authAttempts.set(key, filtered);
+      }
+    }
+  }
+  
+  next();
+};
+
+// Input sanitization middleware
+const sanitizeInput = (req, res, next) => {
+  const sanitize = (obj) => {
+    if (typeof obj === 'string') {
+      return obj.replace(/[<>]/g, '');
+    }
+    if (typeof obj === 'object' && obj !== null) {
+      for (const key in obj) {
+        obj[key] = sanitize(obj[key]);
+      }
+    }
+    return obj;
+  };
+  
+  if (req.body) req.body = sanitize(req.body);
+  if (req.query) req.query = sanitize(req.query);
+  if (req.params) req.params = sanitize(req.params);
+  
+  next();
+};
+
 // Middleware
 app.use(express.static('public')) 
 app.use(express.urlencoded({ extended: false }));
+app.use(sanitizeInput);
 app.use(morgan('dev'))
 app.use(methodOverride('_method'))
 
@@ -26,7 +96,13 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: 'strict'
+    }
   })
 );
 
@@ -61,6 +137,8 @@ async function startServer() {
 startServer();
 
 
+app.use('/auth/sign-in', rateLimiter);
+app.use('/auth/sign-up', rateLimiter);
 app.use('/auth', authController)
 app.use('/', indexController)
 
