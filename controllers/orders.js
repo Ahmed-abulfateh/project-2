@@ -2,7 +2,7 @@ const Order = require("../models/Order");
 const Product = require("../models/Product");
 const StockHistory = require("../models/StockHistory");
 const User = require("../models/User");
-const { sendOrderAcceptedEmail, sendDeliveryStatusEmail } = require("../utils/email");
+const { sendOrderAcceptedEmail, sendDeliveryStatusEmail, sendOrderConfirmationEmail } = require("../utils/email");
 
 // Customer: Create new order from cart
 async function createOrder(req, res) {
@@ -45,6 +45,21 @@ async function createOrder(req, res) {
 
     await newOrder.save();
 
+    // Send order confirmation email to customer
+    try {
+      const customerEmail = req.session.user?.email;
+      if (customerEmail) {
+        await sendOrderConfirmationEmail(customerEmail, {
+          orderId: newOrder._id,
+          totalPrice: newOrder.totalPrice.toFixed(2),
+          deliveryAddress: newOrder.deliveryAddress,
+        });
+      }
+    } catch (emailError) {
+      console.log("Failed to send order confirmation email:", emailError);
+      // Continue even if email fails
+    }
+
     // Clear cart after successful order
     req.session.cart = [];
 
@@ -72,8 +87,10 @@ async function getOrderDetail(req, res) {
   try {
     const order = await Order.findById(req.params.id).populate("items.product");
     
-    // Check if user is the order owner
-    if (order.customer.toString() !== req.session.user._id.toString()) {
+    // Check if user is the order owner or an admin
+    const isOwner = order.customer.toString() === req.session.user._id.toString();
+    const isAdmin = req.session.user?.role === "admin";
+    if (!isOwner && !isAdmin) {
       return res.send("Unauthorized");
     }
 
