@@ -42,8 +42,28 @@ async function getProducts(req, res) {
 // Admin: Get all products with edit/delete options
 async function getAdminProducts(req, res) {
   try {
-    const products = await Product.find();
-    res.render("products/admin.ejs", { products });
+    const { name, category } = req.query;
+    const filter = {};
+
+    if (name && name.trim()) {
+      filter.name = { $regex: name.trim(), $options: "i" };
+    }
+
+    if (category && category !== "All") {
+      filter.category = category;
+    }
+
+    const [products, categories] = await Promise.all([
+      Product.find(filter),
+      Product.distinct("category"),
+    ]);
+
+    res.render("products/admin.ejs", {
+      products,
+      categories,
+      selectedName: name || "",
+      selectedCategory: category || "All",
+    });
   } catch (error) {
     console.log(error);
     res.send(error);

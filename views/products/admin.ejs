@@ -32,6 +32,23 @@
       <button type="submit" class="btn btn-success">Add Product</button>
     </form>
 
+    <form action="/products/admin/dashboard" method="GET" class="create-product-form" style="margin-top: 20px;">
+      <h3>Filter Products</h3>
+      <input type="text" name="name" placeholder="Search by name" value="<%= selectedName || '' %>">
+      <select name="category">
+        <option value="All">All Categories</option>
+        <% if (categories && categories.length) { %>
+          <% categories.forEach(cat => { %>
+            <option value="<%= cat %>" <%= selectedCategory === cat ? 'selected' : '' %>><%= cat %></option>
+          <% }) %>
+        <% } %>
+      </select>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <button type="submit" class="btn btn-primary">Apply Filters</button>
+        <a href="/products/admin/dashboard" class="btn btn-secondary" style="text-decoration: none;">Clear</a>
+      </div>
+    </form>
+
     <table class="products-table">
       <thead>
         <tr>
