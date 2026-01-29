@@ -90,14 +90,25 @@ router.get("/admin/stock-history/download", isSignedIn, isAdmin, async (req, res
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(excelData);
 
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Stock History");
+    // Create date-based worksheet name (e.g., "Jan 29 2026")
+    const currentDate = new Date();
+    const worksheetName = currentDate.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+
+    // Add worksheet to workbook with date-based name
+    XLSX.utils.book_append_sheet(wb, ws, worksheetName);
 
     // Generate buffer
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
+    // Create filename with download date (e.g., "stock-history-2026-01-29.xlsx")
+    const filename = `stock-history-${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}.xlsx`;
+
     // Set headers for download
-    res.setHeader('Content-Disposition', 'attachment; filename=stock-history.xlsx');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.send(buf);
   } catch (error) {
