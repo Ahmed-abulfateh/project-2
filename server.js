@@ -13,13 +13,52 @@ const session = require('express-session');
 const isSignedIn = require("./middleware/is-signed-in.js");
 const passUserToView = require("./middleware/pass-user-to-view.js");
 const cartMiddleware = require("./middleware/cart.js");
-const methodOverride = require('method-override')
+const methodOverride = require('method-override');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
+const cors = require('cors');
 
 // Middleware
 app.use(express.static('public')) 
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan('dev'))
 app.use(methodOverride('_method'))
+
+// Security Middleware
+app.use(helmet());
+
+// Enable CORS
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+  credentials: true
+}));
+
+// Rate limiting for general routes
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 15 * 60 * 1000,
+  message: 'Too many requests from this IP, please try again later.'
+});
+app.use('/api', limiter);
+
+// Strict rate limiting for auth routes
+const authLimiter = rateLimit({
+  max: 5,
+  windowMs: 15 * 60 * 1000,
+  message: 'Too many authentication attempts, please try again later.'
+});
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Data sanitization against XSS
+app.use(xss());
+
+// Prevent parameter pollution
+app.use(hpp());
 
 
 app.use(
@@ -61,6 +100,8 @@ async function startServer() {
 startServer();
 
 
+app.use('/auth/sign-in', authLimiter);
+app.use('/auth/sign-up', authLimiter);
 app.use('/auth', authController)
 app.use('/', indexController)
 
