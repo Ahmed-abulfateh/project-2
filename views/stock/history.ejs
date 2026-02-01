@@ -203,16 +203,16 @@
             </td>
             <td>
               <% if (record.adminId) { %>
-                <%= record.adminId.username %> (Admin)
+                Admin
               <% } else { %>
-                Customer Order
+                Customer
               <% } %>
             </td>
             <td>
-              <% if (record.orderId && record.orderId.customer) { %>
+              <% if (record.adminId) { %>
+                <%= record.adminId.username %>
+              <% } else if (record.orderId && record.orderId.customer) { %>
                 <%= record.orderId.customer.username %>
-              <% } else if (record.adminId) { %>
-                -
               <% } else { %>
                 N/A
               <% } %>
