@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Manage Coupons</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .coupons-container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .coupons-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 15px;
+    }
+
+    .coupons-header h1 {
+      margin: 0;
+      color: #333;
+    }
+
+    .btn-create {
+      padding: 10px 20px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-create:hover {
+      background: #218838;
+    }
+
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      border: 1px solid #c3e6cb;
+    }
+
+    .create-form {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      border: 1px solid #ddd;
+    }
+
+    .create-form h3 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #333;
+      font-size: 13px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-submit {
+      padding: 10px 20px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-submit:hover {
+      background: #218838;
+    }
+
+    .coupons-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .coupons-table thead {
+      background: #f8f9fa;
+      border-bottom: 2px solid #ddd;
+    }
+
+    .coupons-table th {
+      padding: 12px;
+      text-align: left;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .coupons-table td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .coupons-table tr:hover {
+      background: #f8f9fa;
+    }
+
+    .coupon-code {
+      font-family: monospace;
+      background: #f0f0f0;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-weight: bold;
+      color: #007bff;
+    }
+
+    .discount-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .discount-percentage {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .discount-fixed {
+      background: #f3e5f5;
+      color: #7b1fa2;
+    }
+
+    .status-active {
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    .status-expired {
+      color: #dc3545;
+      font-weight: bold;
+    }
+
+    .status-inactive {
+      color: #6c757d;
+      font-weight: bold;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-edit {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background: #0056b3;
+    }
+
+    .btn-delete {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background: #c82333;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .checkbox-group {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin: 0;
+      font-weight: normal;
+      font-size: 12px;
+    }
+
+    .checkbox-group input {
+      margin: 0;
+      width: auto;
+    }
+  </style>
+</head>
+<body>
+  <%- include('../navbar.ejs') %>
+
+  <div class="coupons-container">
+    <div class="coupons-header">
+      <h1>Manage Coupons</h1>
+      <a href="#createForm" class="btn-create">+ Create New Coupon</a>
+    </div>
+
+    <% if (typeof success !== 'undefined') { %>
+      <div class="success-message"><%= success %></div>
+    <% } %>
+
+    <!-- Create Coupon Form -->
+    <div class="create-form" id="createForm">
+      <h3>Create New Coupon</h3>
+      <form method="POST" action="/coupons">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Coupon Code</label>
+            <input type="text" name="code" placeholder="e.g., SAVE10" required style="text-transform: uppercase;">
+          </div>
+
+          <div class="form-group">
+            <label>Discount Type</label>
+            <select name="discountType" onchange="updateDiscountLabel()" required>
+              <option value="percentage">Percentage (%)</option>
+              <option value="fixed">Fixed Amount ($)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Discount Value</label>
+            <input type="number" name="discountValue" id="discountValueInput" placeholder="10" step="0.01" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label>Expires At</label>
+            <input type="datetime-local" name="expiresAt" required>
+          </div>
+
+          <div class="form-group">
+            <label>Min. Order Value ($)</label>
+            <input type="number" name="minOrderValue" placeholder="0" step="0.01" min="0">
+          </div>
+
+          <div class="form-group">
+            <label>Max Uses (Leave blank for unlimited)</label>
+            <input type="number" name="maxUses" placeholder="100" min="1">
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Description</label>
+            <textarea name="description" placeholder="Enter coupon description"></textarea>
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Categories (Optional - Leave blank for all categories)</label>
+            <div class="checkbox-group">
+              <% categories.forEach(cat => { %>
+                <label>
+                  <input type="checkbox" name="categories" value="<%= cat %>">
+                  <%= cat %>
+                </label>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-submit">Create Coupon</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Coupons List -->
+    <% if (coupons.length === 0) { %>
+      <div class="empty-state">
+        <p>No coupons created yet. Create your first coupon above!</p>
+      </div>
+    <% } else { %>
+      <table class="coupons-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Discount</th>
+            <th>Min Order</th>
+            <th>Expires</th>
+            <th>Uses</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% coupons.forEach(coupon => { %>
+            <% 
+              const isExpired = new Date() > coupon.expiresAt;
+              const statusClass = !coupon.isActive ? 'status-inactive' : isExpired ? 'status-expired' : 'status-active';
+              const statusText = !coupon.isActive ? 'Inactive' : isExpired ? 'Expired' : 'Active';
+            %>
+            <tr>
+              <td><span class="coupon-code"><%= coupon.code %></span></td>
+              <td>
+                <span class="discount-badge <%= coupon.discountType === 'percentage' ? 'discount-percentage' : 'discount-fixed' %>">
+                  <% if (coupon.discountType === 'percentage') { %>
+                    <%= coupon.discountValue %>%
+                  <% } else { %>
+                    $<%= coupon.discountValue.toFixed(2) %>
+                  <% } %>
+                </span>
+              </td>
+              <td>$<%= coupon.minOrderValue.toFixed(2) %></td>
+              <td><%= new Date(coupon.expiresAt).toLocaleDateString() %></td>
+              <td>
+                <% if (coupon.maxUses) { %>
+                  <%= coupon.usedCount %> / <%= coupon.maxUses %>
+                <% } else { %>
+                  <%= coupon.usedCount %> (Unlimited)
+                <% } %>
+              </td>
+              <td><span class="<%= statusClass %>"><%= statusText %></span></td>
+              <td>
+                <div class="actions">
+                  <a href="/coupons/<%= coupon._id %>/edit" class="btn-small btn-edit">Edit</a>
+                  <form method="POST" action="/coupons/<%= coupon._id %>?_method=DELETE" style="display: inline;" onsubmit="return confirm('Delete this coupon?');">
+                    <button type="submit" class="btn-small btn-delete">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+
+  <script>
+    function updateDiscountLabel() {
+      const type = document.querySelector('select[name="discountType"]').value;
+      const input = document.getElementById('discountValueInput');
+      input.placeholder = type === 'percentage' ? '10' : '5.00';
+      input.max = type === 'percentage' ? '100' : '';
+    }
+  </script>
+</body>
+</html>

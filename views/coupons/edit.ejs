@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Coupon</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .edit-container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .edit-header {
+      margin-bottom: 30px;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 15px;
+    }
+
+    .edit-header h1 {
+      margin: 0;
+      color: #333;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #333;
+      font-size: 13px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .btn-submit {
+      padding: 10px 20px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-submit:hover {
+      background: #218838;
+    }
+
+    .btn-cancel {
+      padding: 10px 20px;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-cancel:hover {
+      background: #545b62;
+    }
+
+    .checkbox-group {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin: 0;
+      font-weight: normal;
+      font-size: 12px;
+    }
+
+    .checkbox-group input {
+      margin: 0;
+      width: auto;
+    }
+
+    .coupon-stats {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      border-left: 4px solid #007bff;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .stat-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .stat-label {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .stat-value {
+      color: #666;
+    }
+
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .toggle-group input[type="checkbox"] {
+      width: auto;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <%- include('../navbar.ejs') %>
+
+  <div class="edit-container">
+    <div class="edit-header">
+      <h1>Edit Coupon</h1>
+    </div>
+
+    <!-- Coupon Stats -->
+    <div class="coupon-stats">
+      <div class="stat-row">
+        <span class="stat-label">Code:</span>
+        <span class="stat-value"><%= coupon.code %></span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Created:</span>
+        <span class="stat-value"><%= new Date(coupon.createdAt).toLocaleDateString() %></span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Times Used:</span>
+        <span class="stat-value">
+          <% if (coupon.maxUses) { %>
+            <%= coupon.usedCount %> / <%= coupon.maxUses %>
+          <% } else { %>
+            <%= coupon.usedCount %> (Unlimited)
+          <% } %>
+        </span>
+      </div>
+    </div>
+
+    <form method="POST" action="/coupons/<%= coupon._id %>?_method=PUT">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Discount Type</label>
+          <select name="discountType" onchange="updateDiscountLabel()" required>
+            <option value="percentage" <%= coupon.discountType === 'percentage' ? 'selected' : '' %>>Percentage (%)</option>
+            <option value="fixed" <%= coupon.discountType === 'fixed' ? 'selected' : '' %>>Fixed Amount ($)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Discount Value</label>
+          <input type="number" name="discountValue" id="discountValueInput" value="<%= coupon.discountValue %>" step="0.01" min="0" required>
+        </div>
+
+        <div class="form-group">
+          <label>Expires At</label>
+          <input type="datetime-local" name="expiresAt" value="<%= coupon.expiresAt.toISOString().slice(0, 16) %>" required>
+        </div>
+
+        <div class="form-group">
+          <label>Min. Order Value ($)</label>
+          <input type="number" name="minOrderValue" value="<%= coupon.minOrderValue %>" step="0.01" min="0">
+        </div>
+
+        <div class="form-group">
+          <label>Max Uses (Leave blank for unlimited)</label>
+          <input type="number" name="maxUses" value="<%= coupon.maxUses || '' %>" min="1">
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>Description</label>
+          <textarea name="description" placeholder="Enter coupon description"><%= coupon.description %></textarea>
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>Categories (Optional - Leave blank for all categories)</label>
+          <div class="checkbox-group">
+            <% categories.forEach(cat => { %>
+              <label>
+                <input type="checkbox" name="categories" value="<%= cat %>" <%= (coupon.categories && coupon.categories.includes(cat)) ? 'checked' : '' %>>
+                <%= cat %>
+              </label>
+            <% }) %>
+          </div>
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <div class="toggle-group">
+            <input type="checkbox" id="isActive" name="isActive" <%= coupon.isActive ? 'checked' : '' %>>
+            <label for="isActive" style="margin: 0; font-weight: bold;">Active</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">Update Coupon</button>
+        <a href="/coupons" class="btn-cancel">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function updateDiscountLabel() {
+      const type = document.querySelector('select[name="discountType"]').value;
+      const input = document.getElementById('discountValueInput');
+      input.placeholder = type === 'percentage' ? '10' : '5.00';
+      input.max = type === 'percentage' ? '100' : '';
+    }
+  </script>
+</body>
+</html>

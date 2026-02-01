@@ -205,6 +205,18 @@
         
         <form action="/orders" method="POST" class="checkout-form">
           <h2>Delivery Address</h2>
+                   <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #ddd;">
+                     <h3 style="margin-top: 0;">Apply Coupon Code</h3>
+                     <div style="display: flex; gap: 10px;">
+                       <input type="text" id="couponCode" placeholder="Enter coupon code" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                       <button type="button" id="applyCouponBtn" class="btn btn-info" onclick="applyCoupon()" style="padding: 8px 20px;">Apply</button>
+                     </div>
+                     <div id="couponMessage" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+                     <div id="couponDiscount" style="margin-top: 10px; color: #28a745; font-weight: bold; display: none;">
+                       Discount Applied: <span id="discountAmount">$0.00</span>
+                       <button type="button" onclick="removeCoupon()" style="margin-left: 10px; padding: 4px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Remove</button>
+                     </div>
+                   </div>
           
           <% if (user.address) { %>
             <div class="address-options">
@@ -261,5 +273,79 @@
       });
     }
   </script>
+   <script>
+     let appliedCoupon = null;
+     let discountAmount = 0;
+
+     function applyCoupon() {
+       const code = document.getElementById('couponCode').value.trim();
+       const messageDiv = document.getElementById('couponMessage');
+       
+       if (!code) {
+         messageDiv.textContent = 'Please enter a coupon code';
+         messageDiv.style.display = 'block';
+         messageDiv.style.background = '#fff3cd';
+         messageDiv.style.color = '#856404';
+         return;
+       }
+
+       const orderTotal = <%= totalPrice %>;
+
+       fetch('/coupons/validate', {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/x-www-form-urlencoded'
+         },
+         body: `code=${encodeURIComponent(code)}&orderTotal=${orderTotal}`
+       })
+       .then(response => response.json())
+       .then(data => {
+         if (data.valid) {
+           appliedCoupon = code;
+           discountAmount = parseFloat(data.discount);
+           
+           messageDiv.textContent = data.message;
+           messageDiv.style.background = '#d4edda';
+           messageDiv.style.color = '#155724';
+           messageDiv.style.display = 'block';
+           
+           document.getElementById('couponDiscount').style.display = 'block';
+           document.getElementById('discountAmount').textContent = '$' + discountAmount.toFixed(2);
+           document.getElementById('couponCode').disabled = true;
+           document.getElementById('applyCouponBtn').disabled = true;
+         } else {
+           messageDiv.textContent = data.message;
+           messageDiv.style.background = '#f8d7da';
+           messageDiv.style.color = '#721c24';
+           messageDiv.style.display = 'block';
+           document.getElementById('couponDiscount').style.display = 'none';
+         }
+       })
+       .catch(error => {
+         console.error('Error:', error);
+         messageDiv.textContent = 'Error validating coupon';
+         messageDiv.style.background = '#f8d7da';
+         messageDiv.style.color = '#721c24';
+         messageDiv.style.display = 'block';
+       });
+     }
+
+     function removeCoupon() {
+       appliedCoupon = null;
+       discountAmount = 0;
+       document.getElementById('couponCode').value = '';
+       document.getElementById('couponCode').disabled = false;
+       document.getElementById('applyCouponBtn').disabled = false;
+       document.getElementById('couponMessage').style.display = 'none';
+       document.getElementById('couponDiscount').style.display = 'none';
+     }
+
+     // Allow Enter key to apply coupon
+     document.getElementById('couponCode').addEventListener('keypress', function(e) {
+       if (e.key === 'Enter') {
+         applyCoupon();
+       }
+     });
+   </script>
 </body>
 </html>

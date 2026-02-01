@@ -11,6 +11,7 @@ const ordersRoutes = require("./controllers/orders.routes.js");
 const cartRoutes = require("./controllers/cart.routes.js");
 const profileRoutes = require("./controllers/profile.routes.js");
 const wishlistRoutes = require("./controllers/wishlist.routes.js");
+const couponsRoutes = require("./controllers/coupons.routes.js");
 const session = require('express-session');
 const isSignedIn = require("./middleware/is-signed-in.js");
 const passUserToView = require("./middleware/pass-user-to-view.js");
@@ -148,6 +149,7 @@ app.use('/', indexController)
 app.use(isSignedIn)
 app.use('/profile', profileRoutes);
 app.use('/wishlist', wishlistRoutes);
-app.use('/cart', cartRoutes);
+  app.use('/coupons', couponsRoutes);
+  app.use('/cart', cartRoutes);
 app.use('/products', productsRoutes);
 app.use('/orders', ordersRoutes);
