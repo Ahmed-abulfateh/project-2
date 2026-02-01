@@ -134,6 +134,49 @@
       color: #333;
       margin-bottom: 20px;
     }
+
+    .filter-bar {
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .pagination {
+      display: flex;
+      gap: 8px;
+      margin-top: 15px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .page-link {
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-decoration: none;
+      color: #007bff;
+    }
+
+    .page-link.active {
+      background: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
   </style>
 </head>
 <body>
@@ -141,6 +184,17 @@
   
   <div class="container">
     <h1>Stock History</h1>
+
+    <% const buildQuery = (overrides = {}) => { 
+      const params = new URLSearchParams(); 
+      const merged = { ...filters, ...overrides }; 
+      Object.entries(merged).forEach(([key, value]) => { 
+        if (value !== undefined && value !== null && value !== "" && value !== "all") {
+          params.set(key, value);
+        }
+      }); 
+      return params.toString(); 
+    }; %>
     
     <!-- Summary Section -->
     <div class="summary-section">
@@ -165,10 +219,101 @@
       </div>
     </div>
 
+    <form class="filter-bar" method="GET" action="/products/admin/stock-history">
+      <div class="filter-grid">
+        <div>
+          <label>Change Type</label>
+          <select name="changeType">
+            <option value="all" <%= filters.changeType === 'all' ? 'selected' : '' %>>All</option>
+            <option value="admin-add" <%= filters.changeType === 'admin-add' ? 'selected' : '' %>>Admin Add</option>
+            <option value="admin-subtract" <%= filters.changeType === 'admin-subtract' ? 'selected' : '' %>>Admin Subtract</option>
+            <option value="customer-order" <%= filters.changeType === 'customer-order' ? 'selected' : '' %>>Customer Order</option>
+            <option value="order-rejected" <%= filters.changeType === 'order-rejected' ? 'selected' : '' %>>Order Rejected</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Actor</label>
+          <select name="actor">
+            <option value="all" <%= filters.actor === 'all' ? 'selected' : '' %>>All</option>
+            <option value="admin" <%= filters.actor === 'admin' ? 'selected' : '' %>>Admin</option>
+            <option value="customer" <%= filters.actor === 'customer' ? 'selected' : '' %>>Customer</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Category</label>
+          <select name="category">
+            <option value="all" <%= filters.category === 'all' ? 'selected' : '' %>>All</option>
+            <% categories.forEach(cat => { %>
+              <option value="<%= cat %>" <%= filters.category === cat ? 'selected' : '' %>><%= cat %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div>
+          <label>Product</label>
+          <select name="productId">
+            <option value="all" <%= filters.productId === 'all' ? 'selected' : '' %>>All</option>
+            <% products.forEach(p => { %>
+              <option value="<%= p._id %>" <%= String(filters.productId) === String(p._id) ? 'selected' : '' %>><%= p.name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div>
+          <label>From</label>
+          <input type="date" name="dateFrom" value="<%= filters.dateFrom || '' %>">
+        </div>
+
+        <div>
+          <label>To</label>
+          <input type="date" name="dateTo" value="<%= filters.dateTo || '' %>">
+        </div>
+
+        <div>
+          <label>Search (Order ID / Username)</label>
+          <input type="text" name="search" value="<%= filters.search || '' %>" placeholder="Search...">
+        </div>
+
+        <div>
+          <label>Sort By</label>
+          <select name="sort">
+            <option value="date" <%= filters.sort === 'date' ? 'selected' : '' %>>Date</option>
+            <option value="quantity" <%= filters.sort === 'quantity' ? 'selected' : '' %>>Quantity</option>
+            <option value="price" <%= filters.sort === 'price' ? 'selected' : '' %>>Price</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Order</label>
+          <select name="order">
+            <option value="desc" <%= filters.order === 'desc' ? 'selected' : '' %>>Desc</option>
+            <option value="asc" <%= filters.order === 'asc' ? 'selected' : '' %>>Asc</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Page Size</label>
+          <select name="limit">
+            <option value="10" <%= String(filters.limit) === '10' ? 'selected' : '' %>>10</option>
+            <option value="25" <%= String(filters.limit) === '25' ? 'selected' : '' %>>25</option>
+            <option value="50" <%= String(filters.limit) === '50' ? 'selected' : '' %>>50</option>
+            <option value="100" <%= String(filters.limit) === '100' ? 'selected' : '' %>>100</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn btn-primary" type="submit">Apply</button>
+        <a class="btn btn-secondary" href="/products/admin/stock-history">Clear</a>
+      </div>
+    </form>
+
     <!-- All Transactions Table -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <h2>All Transactions</h2>
-      <a href="/products/admin/stock-history/download" class="btn btn-success" style="padding: 10px 20px; text-decoration: none; background-color: #28a745; color: white; border-radius: 4px; display: inline-block;">
+      <a href="/products/admin/stock-history/download?<%= buildQuery() %>" class="btn btn-success" style="padding: 10px 20px; text-decoration: none; background-color: #28a745; color: white; border-radius: 4px; display: inline-block;">
         📥 Download Excel
       </a>
     </div>
@@ -223,7 +368,7 @@
               <% } else if (record.orderId) { %>
                 <%= record.orderId %>
               <% } else { %>
-                -
+                - 
               <% } %>
             </td>
             <td><%= record.notes %></td>
@@ -232,6 +377,18 @@
         <% }) %>
       </tbody>
     </table>
+
+    <% if (pagination && pagination.totalPages > 1) { %>
+      <div class="pagination">
+        <span>Page <%= pagination.page %> of <%= pagination.totalPages %></span>
+        <% if (pagination.page > 1) { %>
+          <a class="page-link" href="/products/admin/stock-history?<%= buildQuery({ page: pagination.page - 1 }) %>">Prev</a>
+        <% } %>
+        <% if (pagination.page < pagination.totalPages) { %>
+          <a class="page-link" href="/products/admin/stock-history?<%= buildQuery({ page: pagination.page + 1 }) %>">Next</a>
+        <% } %>
+      </div>
+    <% } %>
   </div>
 </body>
 </html>
