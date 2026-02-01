@@ -119,18 +119,58 @@
     <p class="stock">Available Stock: <%= product.stock %></p>
     
     <% if (product.stock > 0) { %>
-      <div class="order-actions" style="display: flex; gap: 10px; margin: 20px 0;">
+      <div class="order-actions" style="display: flex; gap: 10px; margin: 20px 0; flex-direction: column;">
        <form action="/cart/add" method="POST" class="add-to-cart-form">
-       <div class="form-group">
-       <label for="quantity">Quantity:</label>
-       <input type="number" id="quantity" name="quantity" min="1" max="<%= product.stock %>" value="1" required>
-       </div>
-       <input type="hidden" name="productId" value="<%= product._id %>">
-       <button type="submit" class="btn btn-submit" style="background-color: #28a745;">Add to Cart</button>
-        </form>
+        <!-- Variant Selection -->
+        <% if (product.hasVariants && product.variants && product.variants.length > 0) { %>
+          <div style="margin-bottom: 15px; padding: 15px; background: #f9f9f9; border-radius: 4px;">
+            <h3 style="margin: 0 0 10px 0;">Select Options:</h3>
+            
+            <% 
+              const sizes = [...new Set(product.variants.map(v => v.size).filter(s => s))];
+              const colors = [...new Set(product.variants.map(v => v.color).filter(c => c))];
+            %>
+            
+            <% if (sizes.length > 0) { %>
+              <div style="margin-bottom: 10px;">
+                <label for="size" style="display: block; margin-bottom: 5px; font-weight: bold;">Size:</label>
+                <select id="size" name="size" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                  <option value="">Select Size</option>
+                  <% sizes.forEach(size => { %>
+                    <option value="<%= size %>"><%= size %></option>
+                  <% }) %>
+                </select>
+              </div>
+            <% } %>
+            
+            <% if (colors.length > 0) { %>
+              <div style="margin-bottom: 10px;">
+                <label for="color" style="display: block; margin-bottom: 5px; font-weight: bold;">Color:</label>
+                <select id="color" name="color" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                  <option value="">Select Color</option>
+                  <% colors.forEach(color => { %>
+                    <option value="<%= color %>"><%= color %></option>
+                  <% }) %>
+                </select>
+              </div>
+            <% } %>
+          </div>
+        <% } %>
+
+        <div class="form-group">
+          <label for="quantity">Quantity:</label>
+          <input type="number" id="quantity" name="quantity" min="1" max="<%= product.stock %>" value="1" required>
+        </div>
+        <input type="hidden" name="productId" value="<%= product._id %>">
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn btn-submit" style="background-color: #28a745;">Add to Cart</button>
+          <button type="button" id="wishlistBtn" class="btn btn-submit" style="background-color: #dc3545; cursor: pointer;" onclick="toggleWishlist('<%= product._id %>')">♥ Add to Wishlist</button>
+        </div>
+       </form>
       </div>
     <% } else { %>
       <p class="out-of-stock">Out of Stock</p>
+      <button id="wishlistBtn" class="btn btn-submit" style="background-color: #dc3545; cursor: pointer; margin-top: 20px;" onclick="toggleWishlist('<%= product._id %>')">♥ Add to Wishlist</button>
     <% } %>
     
     
@@ -212,7 +252,70 @@
           }
         }
       });
+
+      // Check if product is in wishlist
+      checkWishlistStatus('<%= product._id %>');
     });
+
+    function toggleWishlist(productId) {
+      const btn = document.getElementById('wishlistBtn');
+      
+      // Check current state
+      if (btn.textContent.includes('Remove from')) {
+        // Remove from wishlist
+        removeFromWishlist(productId);
+      } else {
+        // Add to wishlist
+        addToWishlist(productId);
+      }
+    }
+
+    function addToWishlist(productId) {
+      fetch(`/wishlist/${productId}`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const btn = document.getElementById('wishlistBtn');
+          btn.textContent = '♥ Remove from Wishlist';
+          btn.style.backgroundColor = '#6f42c1';
+          alert('Product added to wishlist!');
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    function removeFromWishlist(productId) {
+      fetch(`/wishlist/${productId}`, {
+        method: 'DELETE'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const btn = document.getElementById('wishlistBtn');
+          btn.textContent = '♥ Add to Wishlist';
+          btn.style.backgroundColor = '#dc3545';
+          alert('Product removed from wishlist!');
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    function checkWishlistStatus(productId) {
+      fetch(`/wishlist/${productId}/check`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.isInWishlist) {
+          const btn = document.getElementById('wishlistBtn');
+          if (btn) {
+            btn.textContent = '♥ Remove from Wishlist';
+            btn.style.backgroundColor = '#6f42c1';
+          }
+        }
+      })
+      .catch(error => console.error('Error checking wishlist:', error));
+    }
   </script>
 
 </body>

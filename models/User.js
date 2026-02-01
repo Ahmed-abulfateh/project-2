@@ -18,6 +18,29 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  phone: {
+    type: String,
+    default: "",
+  },
+  bio: {
+    type: String,
+    default: "",
+  },
+  savedAddresses: [{
+    label: {
+      type: String,
+      enum: ["home", "work", "other"],
+      default: "other"
+    },
+    address: String,
+    city: String,
+    postalCode: String,
+    isDefault: Boolean
+  }],
+  wishlist: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product"
+  }],
   role: {
     type: String,
     enum: ["admin", "customer"],

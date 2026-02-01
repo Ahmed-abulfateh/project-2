@@ -28,11 +28,115 @@ async function createProduct(req, res) {
 // Get all products (for customers)
 async function getProducts(req, res) {
   try {
-    const { category } = req.query;
-    const filter = category ? { category } : {};
-    const products = await Product.find(filter);
+    const { 
+      category, 
+      minPrice, 
+      maxPrice, 
+      minRating,
+      search,
+      inStock,
+      sortBy,
+      page = 1,
+      pageSize = 12
+    } = req.query;
+    
+    const filter = {};
+    
+    // Category filter
+    if (category && category !== "All") {
+      filter.category = category;
+    }
+    
+    // Price range filter
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice) filter.price.$gte = parseFloat(minPrice);
+      if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
+    }
+    
+    // Stock availability filter
+    if (inStock === "true") {
+      filter.stock = { $gt: 0 };
+    }
+    
+    // Search by name or description
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } }
+      ];
+    }
+    
+    // Determine sort order
+    let sortOptions = { createdAt: -1 }; // default: newest first
+    if (sortBy === "price-asc") {
+      sortOptions = { price: 1 };
+    } else if (sortBy === "price-desc") {
+      sortOptions = { price: -1 };
+    } else if (sortBy === "name") {
+      sortOptions = { name: 1 };
+    }
+    
+    // Count total products for pagination
+    const totalCount = await Product.countDocuments(filter);
+    const pageNum = Math.max(1, parseInt(page));
+    const size = Math.min(Math.max(1, parseInt(pageSize)), 48); // min 1, max 48
+    const skip = (pageNum - 1) * size;
+    const totalPages = Math.ceil(totalCount / size);
+    
+    // Get products with pagination
+    const products = await Product.find(filter)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(size);
+    
+    // Get average rating for each product
+    const enrichedProducts = await Promise.all(
+      products.map(async (product) => {
+        const reviews = await Review.find({ product: product._id });
+        const avgRating = reviews.length > 0
+          ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+          : 0;
+        
+        // Filter by minimum rating if specified
+        if (minRating && parseFloat(avgRating) < parseFloat(minRating)) {
+          return null;
+        }
+        
+        return {
+          ...product.toObject(),
+          avgRating,
+          reviewCount: reviews.length
+        };
+      })
+    );
+    
+    // Filter out null values (products below min rating)
+    const filteredProducts = enrichedProducts.filter(p => p !== null);
+    
     const categories = await Product.distinct("category");
-    res.render("products/index.ejs", { products, categories, selectedCategory: category || "All" });
+    
+    res.render("products/index.ejs", { 
+      products: filteredProducts, 
+      categories, 
+      selectedCategory: category || "All",
+      filters: {
+        minPrice: minPrice || "",
+        maxPrice: maxPrice || "",
+        minRating: minRating || "",
+        search: search || "",
+        inStock: inStock === "true",
+        sortBy: sortBy || "newest"
+      },
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        pageSize: size,
+        totalCount: filteredProducts.length,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1
+      }
+    });
   } catch (error) {
     console.log(error);
     res.send(error);
@@ -176,6 +280,96 @@ async function createReview(req, res) {
   }
 }
 
+// Admin: Get variants management page
+async function getVariantsManagement(req, res) {
+  try {
+    const product = await Product.findById(req.params.id);
+    res.render("products/variants.ejs", { product });
+  } catch (error) {
+    console.log(error);
+    res.send(error);
+  }
+}
+
+// Admin: Add variant to product
+async function addVariant(req, res) {
+  try {
+    const { size, color, sku, stock } = req.body;
+    
+    const product = await Product.findById(req.params.id);
+    
+    // Check if variant already exists
+    const existingVariant = product.variants.find(v => v.size === size && v.color === color);
+    if (existingVariant) {
+      return res.send("This variant combination already exists");
+    }
+
+    product.hasVariants = true;
+    product.variants.push({
+      size: size || null,
+      color: color || null,
+      sku,
+      stock: parseInt(stock)
+    });
+
+    await product.save();
+    res.redirect(`/products/${req.params.id}/variants`);
+  } catch (error) {
+    console.log(error);
+    res.send(error);
+  }
+}
+
+// Admin: Delete variant from product
+async function deleteVariant(req, res) {
+  try {
+    const { variantId } = req.params;
+    
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      { $pull: { variants: { _id: variantId } } },
+      { new: true }
+    );
+
+    // If no variants left, set hasVariants to false
+    if (product.variants.length === 0) {
+      product.hasVariants = false;
+      await product.save();
+    }
+
+    res.redirect(`/products/${req.params.id}/variants`);
+  } catch (error) {
+    console.log(error);
+    res.send(error);
+  }
+}
+
+// Admin: Update variant
+async function updateVariant(req, res) {
+  try {
+    const { variantId } = req.params;
+    const { size, color, sku, stock } = req.body;
+    
+    const product = await Product.findById(req.params.id);
+    const variant = product.variants.id(variantId);
+    
+    if (!variant) {
+      return res.send("Variant not found");
+    }
+
+    variant.size = size || null;
+    variant.color = color || null;
+    variant.sku = sku;
+    variant.stock = parseInt(stock);
+
+    await product.save();
+    res.redirect(`/products/${req.params.id}/variants`);
+  } catch (error) {
+    console.log(error);
+    res.send(error);
+  }
+}
+
 // Admin: Delete a review
 async function deleteReview(req, res) {
   try {
@@ -199,4 +393,8 @@ module.exports = {
   deleteProduct,
   createReview,
   deleteReview,
+  getVariantsManagement,
+  addVariant,
+  deleteVariant,
+  updateVariant,
 };

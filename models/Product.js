@@ -1,5 +1,15 @@
 const mongoose = require("mongoose");
 
+const variantSchema = new mongoose.Schema({
+  size: String,
+  color: String,
+  sku: String,
+  stock: {
+    type: Number,
+    default: 0
+  }
+});
+
 const productSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -18,6 +28,11 @@ const productSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
+  hasVariants: {
+    type: Boolean,
+    default: false,
+  },
+  variants: [variantSchema],
   category: {
     type: String,
     required: true,

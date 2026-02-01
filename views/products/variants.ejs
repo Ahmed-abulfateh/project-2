@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Manage Variants</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .variants-container {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .variants-header {
+      margin-bottom: 30px;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 15px;
+    }
+
+    .variants-header h1 {
+      margin: 0 0 5px 0;
+      color: #333;
+    }
+
+    .product-info {
+      color: #666;
+      font-size: 14px;
+      margin: 10px 0;
+    }
+
+    .add-variant-form {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      border: 1px solid #ddd;
+    }
+
+    .add-variant-form h3 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #333;
+      font-size: 13px;
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-submit {
+      padding: 10px 20px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-submit:hover {
+      background: #218838;
+    }
+
+    .btn-cancel {
+      padding: 10px 20px;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-cancel:hover {
+      background: #545b62;
+    }
+
+    .variants-list {
+      margin-top: 20px;
+    }
+
+    .variants-list h3 {
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .variant-card {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .variant-info {
+      flex: 1;
+    }
+
+    .variant-info h4 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+
+    .variant-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .variant-detail {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .variant-detail strong {
+      color: #333;
+    }
+
+    .variant-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-small {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+
+    .btn-edit {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background: #0056b3;
+    }
+
+    .btn-delete {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background: #c82333;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border: 1px dashed #ddd;
+    }
+
+    .btn-back {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #6c757d;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    .btn-back:hover {
+      background: #545b62;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <%- include('../navbar.ejs') %>
+
+  <div class="variants-container">
+    <a href="/products/<%= product._id %>/edit" class="btn-back">← Back to Edit Product</a>
+
+    <div class="variants-header">
+      <h1>Manage Variants</h1>
+      <div class="product-info">
+        <strong>Product:</strong> <%= product.name %><br>
+        <strong>Price:</strong> $<%= product.price.toFixed(2) %><br>
+        <strong>Base Stock:</strong> <%= product.stock %>
+      </div>
+    </div>
+
+    <div class="add-variant-form">
+      <h3>Add New Variant</h3>
+      <form method="POST" action="/products/<%= product._id %>/variants">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Size</label>
+            <input type="text" name="size" placeholder="e.g., S, M, L, XL" >
+          </div>
+
+          <div class="form-group">
+            <label>Color</label>
+            <input type="text" name="color" placeholder="e.g., Red, Blue" >
+          </div>
+
+          <div class="form-group">
+            <label>SKU</label>
+            <input type="text" name="sku" placeholder="e.g., SKU-001" required>
+          </div>
+
+          <div class="form-group">
+            <label>Stock Quantity</label>
+            <input type="number" name="stock" placeholder="0" min="0" required>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-submit">Add Variant</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="variants-list">
+      <h3>Current Variants (<%= product.variants.length %>)</h3>
+      
+      <% if (product.variants.length === 0) { %>
+        <div class="empty-state">
+          <p>No variants added yet. Add your first variant above!</p>
+        </div>
+      <% } else { %>
+        <% product.variants.forEach(variant => { %>
+          <div class="variant-card">
+            <div class="variant-info">
+              <h4>
+                <% if (variant.size || variant.color) { %>
+                  <%= (variant.size ? 'Size: ' + variant.size : '') %> <%= (variant.color ? 'Color: ' + variant.color : '') %>
+                <% } else { %>
+                  Default Variant
+                <% } %>
+              </h4>
+              <div class="variant-details">
+                <div class="variant-detail">
+                  <strong>SKU:</strong>
+                  <span><%= variant.sku || 'N/A' %></span>
+                </div>
+                <div class="variant-detail">
+                  <strong>Stock:</strong>
+                  <span><%= variant.stock %></span>
+                </div>
+                <div class="variant-detail">
+                  <strong>Added:</strong>
+                  <span><%= new Date(variant._id.getTimestamp()).toLocaleDateString() %></span>
+                </div>
+              </div>
+            </div>
+            <div class="variant-actions">
+              <button class="btn-small btn-edit edit-variant-btn" data-variant-id="<%= variant._id %>" data-size="<%= variant.size || '' %>" data-color="<%= variant.color || '' %>" data-sku="<%= variant.sku || '' %>" data-stock="<%= variant.stock %>">Edit</button>
+              <form method="POST" action="/products/<%= product._id %>/variants/<%= variant._id %>?_method=DELETE" style="display: inline;" onsubmit="return confirm('Delete this variant?');">
+                <button type="submit" class="btn-small btn-delete">Delete</button>
+              </form>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Edit Variant Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">Edit Variant</div>
+      <form id="editForm" method="POST" style="display: none;">
+        <div class="form-group">
+          <label>Size</label>
+          <input type="text" id="editSize" name="size" placeholder="e.g., S, M, L, XL" >
+        </div>
+
+        <div class="form-group">
+          <label>Color</label>
+          <input type="text" id="editColor" name="color" placeholder="e.g., Red, Blue" >
+        </div>
+
+        <div class="form-group">
+          <label>SKU</label>
+          <input type="text" id="editSku" name="sku" placeholder="e.g., SKU-001" required>
+        </div>
+
+        <div class="form-group">
+          <label>Stock Quantity</label>
+          <input type="number" id="editStock" name="stock" placeholder="0" min="0" required>
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn-submit">Save Changes</button>
+          <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const editButtons = document.querySelectorAll('.edit-variant-btn');
+      editButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const variantId = this.getAttribute('data-variant-id');
+          const size = this.getAttribute('data-size');
+          const color = this.getAttribute('data-color');
+          const sku = this.getAttribute('data-sku');
+          const stock = this.getAttribute('data-stock');
+
+          openEditModal(variantId, size, color, sku, stock);
+        });
+      });
+    });
+
+    function openEditModal(variantId, size, color, sku, stock) {
+      document.getElementById('editSize').value = size;
+      document.getElementById('editColor').value = color;
+      document.getElementById('editSku').value = sku;
+      document.getElementById('editStock').value = stock;
+
+      const form = document.getElementById('editForm');
+      form.action = `/products/<%= product._id %>/variants/${variantId}?_method=PUT`;
+      form.style.display = 'block';
+
+      document.getElementById('editModal').classList.add('show');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('show');
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('editModal');
+      if (event.target === modal) {
+        closeEditModal();
+      }
+    };
+  </script>
+</body>
+</html>

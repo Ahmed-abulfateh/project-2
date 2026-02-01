@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Wishlist</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .wishlist-container {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .wishlist-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 15px;
+    }
+
+    .wishlist-header h1 {
+      margin: 0;
+      color: #333;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-clear-wishlist {
+      padding: 10px 20px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-clear-wishlist:hover {
+      background: #c82333;
+    }
+
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      border: 1px solid #c3e6cb;
+    }
+
+    .empty-wishlist {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .empty-wishlist svg {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+      color: #ddd;
+    }
+
+    .empty-wishlist h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .empty-wishlist p {
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    .btn-continue {
+      display: inline-block;
+      padding: 12px 30px;
+      background: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    .btn-continue:hover {
+      background: #0056b3;
+    }
+
+    .wishlist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .wishlist-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.3s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .wishlist-item:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      border-color: #007bff;
+    }
+
+    .item-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      background: #f5f5f5;
+    }
+
+    .item-content {
+      padding: 15px;
+    }
+
+    .item-category {
+      display: inline-block;
+      background: #2196f3;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .item-name {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-description {
+      color: #666;
+      font-size: 12px;
+      margin-bottom: 10px;
+      height: 36px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+    }
+
+    .item-price {
+      font-size: 18px;
+      color: #28a745;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .item-stock {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    .stock-in {
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    .stock-out {
+      color: #dc3545;
+      font-weight: bold;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-small {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .btn-view {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-view:hover {
+      background: #0056b3;
+    }
+
+    .btn-add-cart {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-add-cart:hover {
+      background: #218838;
+    }
+
+    .btn-remove {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-remove:hover {
+      background: #c82333;
+    }
+
+    .btn-remove.disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .wishlist-stats {
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .wishlist-stats p {
+      margin: 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .wishlist-stats strong {
+      color: #007bff;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <%- include('../navbar.ejs') %>
+
+  <div class="wishlist-container">
+    <div class="wishlist-header">
+      <h1>♥ My Wishlist</h1>
+      <% if (wishlistItems.length > 0) { %>
+        <div class="header-actions">
+          <form method="POST" action="/wishlist/actions/clear" style="display: inline;">
+            <button type="submit" class="btn-clear-wishlist" onclick="return confirm('Clear entire wishlist?')">Clear Wishlist</button>
+          </form>
+        </div>
+      <% } %>
+    </div>
+
+    <% if (typeof success !== 'undefined') { %>
+      <div class="success-message"><%= success %></div>
+    <% } %>
+
+    <% if (wishlistItems.length === 0) { %>
+      <div class="empty-wishlist">
+        <h2>Your Wishlist is Empty</h2>
+        <p>Add products to your wishlist to save them for later!</p>
+        <a href="/products" class="btn-continue">Continue Shopping</a>
+      </div>
+    <% } else { %>
+      <div class="wishlist-stats">
+        <p>You have <strong><%= wishlistItems.length %></strong> item<%= wishlistItems.length !== 1 ? 's' : '' %> in your wishlist</p>
+      </div>
+
+      <div class="wishlist-grid">
+        <% wishlistItems.forEach(product => { %>
+          <div class="wishlist-item" id="item-<%= product._id %>">
+            <img src="<%= product.imageUrl %>" alt="<%= product.name %>" class="item-image">
+            <div class="item-content">
+              <span class="item-category"><%= product.category %></span>
+              <div class="item-name" title="<%= product.name %>"><%= product.name %></div>
+              <div class="item-description"><%= product.description %></div>
+              <div class="item-price">$<%= product.price.toFixed(2) %></div>
+              <div class="item-stock">
+                <% if (product.stock > 0) { %>
+                  <span class="stock-in">✓ In Stock</span>
+                <% } else { %>
+                  <span class="stock-out">Out of Stock</span>
+                <% } %>
+              </div>
+              <div class="item-actions">
+                <a href="/products/<%= product._id %>" class="btn-small btn-view">View Details</a>
+                <% if (product.stock > 0) { %>
+                  <button class="btn-small btn-add-cart" onclick="addToCart('<%= product._id %>', '<%= product.name %>')">Add to Cart</button>
+                <% } else { %>
+                  <button class="btn-small btn-add-cart disabled" disabled>Out of Stock</button>
+                <% } %>
+                <button class="btn-small btn-remove" onclick="removeFromWishlist('<%= product._id %>')">Remove</button>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    function removeFromWishlist(productId) {
+      if (confirm('Remove this product from wishlist?')) {
+        fetch(`/wishlist/${productId}`, {
+          method: 'DELETE',
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const itemElement = document.getElementById(`item-${productId}`);
+            if (itemElement) {
+              itemElement.style.animation = 'fadeOut 0.3s ease';
+              setTimeout(() => {
+                itemElement.remove();
+                
+                // Check if wishlist is now empty and reload page
+                const remainingItems = document.querySelectorAll('.wishlist-item').length;
+                if (remainingItems === 0) {
+                  setTimeout(() => location.reload(), 500);
+                } else {
+                  // Update stats
+                  const statsP = document.querySelector('.wishlist-stats p');
+                  if (statsP) {
+                    statsP.innerHTML = `You have <strong>${remainingItems}</strong> item${remainingItems !== 1 ? 's' : ''} in your wishlist`;
+                  }
+                }
+              }, 300);
+            }
+          } else {
+            alert('Error removing product from wishlist');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error removing product');
+        });
+      }
+    }
+
+    function addToCart(productId, productName) {
+      fetch('/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `productId=${productId}&quantity=1`
+      })
+      .then(response => response.text())
+      .then(() => {
+        alert(`${productName} added to cart!`);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding to cart');
+      });
+    }
+
+    // Add fade out animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

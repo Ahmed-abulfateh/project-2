@@ -3,20 +3,36 @@ const Product = require("../models/Product");
 // Add item to cart
 async function addToCart(req, res) {
   try {
-    const { productId, quantity } = req.body;
+    const { productId, quantity, size, color } = req.body;
     const product = await Product.findById(productId);
 
     if (!product) {
       return res.send("Product not found");
     }
 
-    if (product.stock < quantity) {
+    // Check if product has variants and variant info is required
+    let availableStock = product.stock;
+    if (product.hasVariants && product.variants.length > 0) {
+      // Find matching variant
+      const variant = product.variants.find(v => 
+        v.size === (size || null) && v.color === (color || null)
+      );
+      
+      if (!variant) {
+        return res.send("Selected variant not found");
+      }
+      
+      availableStock = variant.stock;
+    }
+
+    if (availableStock < quantity) {
       return res.send("Insufficient stock");
     }
 
-    // Check if product already in cart
+    // Create unique identifier for cart item (includes variant info)
+    const variantKey = product.hasVariants ? `${size || ''}|${color || ''}` : '';
     const cartItemIndex = req.session.cart.findIndex(
-      item => item.productId === productId
+      item => item.productId === productId && item.variantKey === variantKey
     );
 
     if (cartItemIndex > -1) {
@@ -24,12 +40,20 @@ async function addToCart(req, res) {
       req.session.cart[cartItemIndex].quantity += parseInt(quantity);
     } else {
       // Add new item to cart
-      req.session.cart.push({
+      const cartItem = {
         productId,
         quantity: parseInt(quantity),
         price: product.price,
         name: product.name,
-      });
+        variantKey,
+      };
+      
+      if (product.hasVariants) {
+        cartItem.size = size || null;
+        cartItem.color = color || null;
+      }
+      
+      req.session.cart.push(cartItem);
     }
 
     res.redirect("/cart");

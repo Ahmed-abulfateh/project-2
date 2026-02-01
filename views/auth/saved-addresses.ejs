@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Saved Addresses</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .profile-container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .profile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 15px;
+    }
+
+    .profile-header h1 {
+      margin: 0;
+      color: #333;
+    }
+
+    .profile-nav {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+      justify-content: center;
+    }
+
+    .nav-link {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-decoration: none;
+      color: #007bff;
+      transition: all 0.3s;
+    }
+
+    .nav-link:hover {
+      background: #007bff;
+      color: white;
+    }
+
+    .nav-link.active {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-add-address {
+      padding: 10px 20px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-add-address:hover {
+      background: #218838;
+    }
+
+    .address-list {
+      margin-top: 20px;
+    }
+
+    .address-card {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 15px;
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .address-card:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-color: #007bff;
+    }
+
+    .address-card.default {
+      background: #f0f8ff;
+      border-color: #007bff;
+    }
+
+    .address-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #007bff;
+      color: white;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .address-badge.default {
+      background: #28a745;
+    }
+
+    .address-info {
+      margin: 10px 0;
+      line-height: 1.6;
+    }
+
+    .address-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      border-top: 1px solid #eee;
+      padding-top: 12px;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+
+    .btn-primary-small {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-primary-small:hover {
+      background: #0056b3;
+    }
+
+    .btn-danger-small {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger-small:hover {
+      background: #c82333;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      border: 1px solid #c3e6cb;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-submit {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-submit:hover {
+      background: #0056b3;
+    }
+
+    .btn-cancel {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-cancel:hover {
+      background: #545b62;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <%- include('../navbar.ejs') %>
+
+  <div class="profile-container">
+    <div class="profile-header">
+      <h1>Saved Addresses</h1>
+      <button class="btn-add-address" onclick="openAddressModal()">+ Add Address</button>
+    </div>
+
+    <div class="profile-nav">
+      <a href="/profile" class="nav-link">Profile Info</a>
+      <a href="/profile/orders" class="nav-link">Order History</a>
+      <a href="/profile/addresses" class="nav-link active">Addresses</a>
+    </div>
+
+    <% if (typeof success !== 'undefined') { %>
+      <div class="success-message"><%= success %></div>
+    <% } %>
+
+    <div class="address-list">
+      <% if (addresses.length === 0) { %>
+        <div class="empty-state">
+          <p>You haven't added any saved addresses yet.</p>
+          <button class="btn-add-address" onclick="openAddressModal()">Add Your First Address</button>
+        </div>
+      <% } else { %>
+        <% addresses.forEach(address => { %>
+          <div class="address-card <%= address.isDefault ? 'default' : '' %>">
+            <div>
+              <span class="address-badge <%= address.isDefault ? 'default' : '' %>">
+                <%= address.label.toUpperCase() %> <%= address.isDefault ? '(Default)' : '' %>
+              </span>
+            </div>
+            <div class="address-info">
+              <strong><%= address.address %></strong><br>
+              <%= address.city %>, <%= address.postalCode %>
+            </div>
+            <div class="address-actions">
+              <% if (!address.isDefault) { %>
+                <form method="POST" action="/profile/addresses/<%= address._id %>/default?_method=PUT" style="display: inline;">
+                  <button type="submit" class="btn-small btn-primary-small">Set as Default</button>
+                </form>
+              <% } %>
+              <form method="POST" action="/profile/addresses/<%= address._id %>?_method=DELETE" style="display: inline;" onsubmit="return confirm('Delete this address?');">
+                <button type="submit" class="btn-small btn-danger-small">Delete</button>
+              </form>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Add Address Modal -->
+  <div id="addressModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">Add New Address</div>
+      <form method="POST" action="/profile/addresses">
+        <div class="form-group">
+          <label>Address Type</label>
+          <select name="label" required>
+            <option value="home">Home</option>
+            <option value="work">Work</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Full Address</label>
+          <input type="text" name="address" placeholder="e.g., 123 Main St, Apt 4B" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" name="city" placeholder="City" required>
+          </div>
+          <div class="form-group">
+            <label>Postal Code</label>
+            <input type="text" name="postalCode" placeholder="ZIP/Postal Code" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="isDefault" name="isDefault">
+            <label for="isDefault" style="margin: 0;">Set as default address</label>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-submit">Add Address</button>
+          <button type="button" class="btn-cancel" onclick="closeAddressModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openAddressModal() {
+      document.getElementById("addressModal").classList.add("show");
+    }
+
+    function closeAddressModal() {
+      document.getElementById("addressModal").classList.remove("show");
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById("addressModal");
+      if (event.target === modal) {
+        closeAddressModal();
+      }
+    };
+  </script>
+</body>
+</html>

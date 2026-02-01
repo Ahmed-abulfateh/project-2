@@ -234,6 +234,12 @@ router.put("/:id", isSignedIn, isAdmin, productsController.updateProduct);
 router.delete("/:id", isSignedIn, isAdmin, productsController.deleteProduct);
 router.get("/:id/edit", isSignedIn, isAdmin, productsController.getEditProduct);
 
+// Variant management routes
+router.get("/:id/variants", isSignedIn, isAdmin, productsController.getVariantsManagement);
+router.post("/:id/variants", isSignedIn, isAdmin, productsController.addVariant);
+router.delete("/:id/variants/:variantId", isSignedIn, isAdmin, productsController.deleteVariant);
+router.put("/:id/variants/:variantId", isSignedIn, isAdmin, productsController.updateVariant);
+
 // Review routes (must come before /:id to avoid conflict)
 router.post("/:id/reviews", isSignedIn, productsController.createReview);
 router.delete("/:productId/reviews/:reviewId", isSignedIn, isAdmin, productsController.deleteReview);
