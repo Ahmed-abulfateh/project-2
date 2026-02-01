@@ -37,6 +37,12 @@ const userSchema = new mongoose.Schema({
     postalCode: String,
     isDefault: Boolean
   }],
+  notificationPreferences: {
+    orders: { type: Boolean, default: true },
+    reviews: { type: Boolean, default: true },
+    wishlist: { type: Boolean, default: true },
+    promotions: { type: Boolean, default: false }
+  },
   wishlist: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product"

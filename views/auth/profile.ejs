@@ -124,6 +124,37 @@
       color: #666;
       font-size: 13px;
     }
+
+    .preferences-card {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    .preferences-card h3 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    .checkbox-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .checkbox-item input {
+      width: auto;
+    }
   </style>
 </head>
 <body>
@@ -177,6 +208,34 @@
         <a href="/" class="btn-secondary" style="text-decoration: none; display: inline-block;">Cancel</a>
       </div>
     </form>
+
+    <div class="preferences-card">
+      <h3>Notification Preferences</h3>
+      <p class="info-text">Choose which updates you want to receive.</p>
+      <form method="POST" action="/profile/preferences?_method=PUT">
+        <div class="checkbox-group">
+          <label class="checkbox-item">
+            <input type="checkbox" name="orders" <%= user.notificationPreferences && user.notificationPreferences.orders ? 'checked' : '' %>>
+            Order updates
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="reviews" <%= user.notificationPreferences && user.notificationPreferences.reviews ? 'checked' : '' %>>
+            Review replies and updates
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="wishlist" <%= user.notificationPreferences && user.notificationPreferences.wishlist ? 'checked' : '' %>>
+            Wishlist updates
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="promotions" <%= user.notificationPreferences && user.notificationPreferences.promotions ? 'checked' : '' %>>
+            Promotions and deals
+          </label>
+        </div>
+        <div class="form-actions" style="margin-top: 15px;">
+          <button type="submit" class="btn-primary">Save Preferences</button>
+        </div>
+      </form>
+    </div>
   </div>
 </body>
 </html>

@@ -21,6 +21,14 @@ const reviewSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  helpfulCount: {
+    type: Number,
+    default: 0,
+  },
+  helpfulBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  }],
 }, { timestamps: true });
 
 const Review = mongoose.model("Review", reviewSchema);

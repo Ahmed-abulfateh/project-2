@@ -27,6 +27,23 @@
                     <a href="/products" class="btn btn-success">Browse Products</a>
                     <a href="/orders" class="btn btn-info">My Orders</a>
                 </div>
+
+                <% if (recommendedProducts && recommendedProducts.length > 0) { %>
+                    <div style="margin-top: 30px;">
+                        <h2>Recommended For You</h2>
+                        <div class="products-grid" style="margin-top: 15px;">
+                            <% recommendedProducts.forEach(rec => { %>
+                                <div class="product-card">
+                                    <img src="<%= rec.imageUrl %>" alt="<%= rec.name %>" style="width: 100%; height: 160px; object-fit: cover; border-radius: 8px 8px 0 0; margin-bottom: 10px;">
+                                    <span style="display: inline-block; background-color: #2196f3; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-bottom: 8px;"><%= rec.category %></span>
+                                    <h3 style="margin: 5px 0;"><%= rec.name %></h3>
+                                    <p class="price">$<%= rec.price.toFixed(2) %></p>
+                                    <a href="/products/<%= rec._id %>" class="btn btn-info">View Details</a>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                <% } %>
             <% } %>
         <% } else { %>
             <p>Please sign in to start shopping!</p>

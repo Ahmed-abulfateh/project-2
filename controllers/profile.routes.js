@@ -9,6 +9,7 @@ router.use(isSignedIn);
 // Profile page
 router.get("/", profileController.getProfile);
 router.put("/", profileController.updateProfile);
+router.put("/preferences", profileController.updateNotificationPreferences);
 
 // Order history
 router.get("/orders", profileController.getOrderHistory);

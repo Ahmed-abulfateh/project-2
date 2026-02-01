@@ -1,6 +1,7 @@
 const Product = require("../models/Product");
 const StockHistory = require("../models/StockHistory");
 const Review = require("../models/Review");
+const Order = require("../models/Order");
 
 // Admin: Create a new product
 async function createProduct(req, res) {
@@ -178,17 +179,67 @@ async function getAdminProducts(req, res) {
 async function getProductDetail(req, res) {
   try {
     const product = await Product.findById(req.params.id);
+
+    const sort = req.query.sort || "newest";
+    const sortMap = {
+      newest: { createdAt: -1 },
+      oldest: { createdAt: 1 },
+      "rating-high": { rating: -1, createdAt: -1 },
+      "rating-low": { rating: 1, createdAt: -1 },
+      helpful: { helpfulCount: -1, createdAt: -1 },
+    };
+
     const reviews = await Review.find({ product: req.params.id })
       .populate("user")
-      .sort({ createdAt: -1 });
-    
+      .sort(sortMap[sort] || sortMap.newest);
+
     // Check if current user has already reviewed this product
     const userReview = await Review.findOne({
       product: req.params.id,
       user: req.session.user._id,
     });
-    
-    res.render("products/show.ejs", { product, reviews, userHasReviewed: !!userReview, currentUser: req.session.user });
+
+    const reviewsWithFlags = reviews.map(review => ({
+      ...review.toObject(),
+      isHelpfulByUser: review.helpfulBy?.some(id => id.toString() === req.session.user._id.toString()),
+    }));
+
+    // Recommendations: products frequently bought together
+    const orderItems = await Order.find({ "items.product": req.params.id })
+      .select("items.product")
+      .populate("items.product");
+
+    const recommendedMap = new Map();
+    orderItems.forEach(order => {
+      order.items.forEach(item => {
+        if (item.product && item.product._id.toString() !== req.params.id) {
+          const id = item.product._id.toString();
+          recommendedMap.set(id, (recommendedMap.get(id) || 0) + item.quantity);
+        }
+      });
+    });
+
+    const recommendedIds = [...recommendedMap.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([id]) => id);
+
+    let recommendedProducts = [];
+    if (recommendedIds.length > 0) {
+      recommendedProducts = await Product.find({ _id: { $in: recommendedIds } });
+    } else {
+      recommendedProducts = await Product.find({ _id: { $ne: req.params.id }, category: product.category })
+        .limit(4);
+    }
+
+    res.render("products/show.ejs", {
+      product,
+      reviews: reviewsWithFlags,
+      userHasReviewed: !!userReview,
+      currentUser: req.session.user,
+      reviewSort: sort,
+      recommendedProducts,
+    });
   } catch (error) {
     console.log(error);
     res.send(error);
@@ -277,6 +328,33 @@ async function createReview(req, res) {
   } catch (error) {
     console.log(error);
     res.send(error);
+  }
+}
+
+// Mark review as helpful
+async function markReviewHelpful(req, res) {
+  try {
+    const { reviewId } = req.params;
+    const userId = req.session.user._id;
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      return res.status(404).json({ success: false, message: "Review not found" });
+    }
+
+    const alreadyHelpful = review.helpfulBy.some(id => id.toString() === userId.toString());
+    if (alreadyHelpful) {
+      return res.json({ success: false, message: "You already marked this as helpful" });
+    }
+
+    review.helpfulBy.push(userId);
+    review.helpfulCount += 1;
+    await review.save();
+
+    res.json({ success: true, helpfulCount: review.helpfulCount });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Error updating helpful count" });
   }
 }
 
@@ -392,6 +470,7 @@ module.exports = {
   updateProduct,
   deleteProduct,
   createReview,
+  markReviewHelpful,
   deleteReview,
   getVariantsManagement,
   addVariant,

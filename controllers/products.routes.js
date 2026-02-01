@@ -243,6 +243,7 @@ router.put("/:id/variants/:variantId", isSignedIn, isAdmin, productsController.u
 // Review routes (must come before /:id to avoid conflict)
 router.post("/:id/reviews", isSignedIn, productsController.createReview);
 router.delete("/:productId/reviews/:reviewId", isSignedIn, isAdmin, productsController.deleteReview);
+router.post("/:productId/reviews/:reviewId/helpful", isSignedIn, productsController.markReviewHelpful);
 
 // Customer routes (come after admin routes)
 router.get("/", isSignedIn, productsController.getProducts);

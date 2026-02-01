@@ -7,7 +7,7 @@ const couponSchema = new mongoose.Schema({
     unique: true,
     uppercase: true,
     trim: true,
-    minlength: 3,
+    minlength: 2,
     maxlength: 20
   },
   discountType: {

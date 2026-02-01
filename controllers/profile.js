@@ -34,6 +34,29 @@ async function updateProfile(req, res) {
   }
 }
 
+// Update notification preferences
+async function updateNotificationPreferences(req, res) {
+  try {
+    const preferences = {
+      orders: req.body.orders === "on",
+      reviews: req.body.reviews === "on",
+      wishlist: req.body.wishlist === "on",
+      promotions: req.body.promotions === "on",
+    };
+
+    await User.findByIdAndUpdate(
+      req.session.user._id,
+      { notificationPreferences: preferences },
+      { new: true }
+    );
+
+    res.redirect("/profile?success=Notification preferences updated");
+  } catch (error) {
+    console.log(error);
+    res.send(error);
+  }
+}
+
 // Get user's order history
 async function getOrderHistory(req, res) {
   try {
@@ -137,4 +160,5 @@ module.exports = {
   addAddress,
   deleteAddress,
   setDefaultAddress,
+  updateNotificationPreferences,
 };

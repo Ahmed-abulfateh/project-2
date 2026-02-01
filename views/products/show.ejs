@@ -174,8 +174,37 @@
     <% } %>
     
     
+    <% if (recommendedProducts && recommendedProducts.length > 0) { %>
+      <div class="reviews-section" style="margin-top: 30px;">
+        <h2>You May Also Like</h2>
+        <div class="products-grid" style="margin-top: 15px;">
+          <% recommendedProducts.forEach(rec => { %>
+            <div class="product-card">
+              <img src="<%= rec.imageUrl %>" alt="<%= rec.name %>" style="width: 100%; height: 160px; object-fit: cover; border-radius: 8px 8px 0 0; margin-bottom: 10px;">
+              <span style="display: inline-block; background-color: #2196f3; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-bottom: 8px;"><%= rec.category %></span>
+              <h3 style="margin: 5px 0;"><%= rec.name %></h3>
+              <p class="price">$<%= rec.price.toFixed(2) %></p>
+              <a href="/products/<%= rec._id %>" class="btn btn-info">View Details</a>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
     <div class="reviews-section">
-      <h2>Customer Reviews</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <h2 style="margin: 0;">Customer Reviews</h2>
+        <form method="GET" action="/products/<%= product._id %>" style="display: flex; align-items: center; gap: 8px;">
+          <label for="reviewSort" style="font-weight: bold; margin: 0;">Sort by:</label>
+          <select id="reviewSort" name="sort" onchange="this.form.submit()" style="padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+            <option value="newest" <%= reviewSort === 'newest' ? 'selected' : '' %>>Newest</option>
+            <option value="oldest" <%= reviewSort === 'oldest' ? 'selected' : '' %>>Oldest</option>
+            <option value="rating-high" <%= reviewSort === 'rating-high' ? 'selected' : '' %>>Rating: High to Low</option>
+            <option value="rating-low" <%= reviewSort === 'rating-low' ? 'selected' : '' %>>Rating: Low to High</option>
+            <option value="helpful" <%= reviewSort === 'helpful' ? 'selected' : '' %>>Most Helpful</option>
+          </select>
+        </form>
+      </div>
       
       
       <div class="review-form">
@@ -217,7 +246,16 @@
               </div>
         <div class="review-comment">
           <%= review.comment %>
-              </div>
+        </div>
+        <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+          <button type="button" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px;" onclick="markHelpful('<%= review._id %>')" <%= review.isHelpfulByUser ? 'disabled' : '' %>>
+            👍 Helpful
+          </button>
+          <span style="font-size: 12px; color: #666;">Helpful: <span id="helpful-count-<%= review._id %>"><%= review.helpfulCount || 0 %></span></span>
+          <% if (review.isHelpfulByUser) { %>
+            <span style="font-size: 12px; color: #28a745;">You marked this</span>
+          <% } %>
+        </div>
           </div>
         <% }); %>
         <% } else { %>
@@ -315,6 +353,24 @@
         }
       })
       .catch(error => console.error('Error checking wishlist:', error));
+    }
+
+    function markHelpful(reviewId) {
+      fetch(`/products/<%= product._id %>/reviews/${reviewId}/helpful`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const countEl = document.getElementById(`helpful-count-${reviewId}`);
+          if (countEl) {
+            countEl.textContent = data.helpfulCount;
+          }
+        } else if (data.message) {
+          alert(data.message);
+        }
+      })
+      .catch(error => console.error('Error marking helpful:', error));
     }
   </script>
 
