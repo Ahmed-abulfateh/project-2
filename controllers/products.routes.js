@@ -210,6 +210,8 @@ router.get("/admin/stock-history/download", isSignedIn, isAdmin, async (req, res
       "Price": record.product ? record.product.price.toFixed(2) : "N/A",
       "Quantity Change": record.quantity,
       "Change Type": record.changeType,
+      "Discount": record.orderId && record.orderId.discountAmount > 0 ? `-$${record.orderId.discountAmount.toFixed(2)}` : "-",
+      "Coupon Code": record.orderId && record.orderId.couponCode ? record.orderId.couponCode : "-",
       "Admin/User": record.adminId ? `${record.adminId.username} (Admin)` : "Customer",
       "Customer Username": record.orderId && record.orderId.customer ? record.orderId.customer.username : "-",
       "Order ID": record.orderId && record.orderId._id ? record.orderId._id.toString() : "-",

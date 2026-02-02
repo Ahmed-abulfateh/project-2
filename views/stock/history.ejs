@@ -325,6 +325,7 @@
           <th>Price</th>
           <th>Quantity Change</th>
           <th>Change Type</th>
+          <th>Discount</th>
           <th>Admin/Customer</th>
           <th>Username</th>
           <th>Order ID</th>
@@ -345,6 +346,18 @@
               <span class="change-type change-type-<%= record.changeType.split('-')[0] %>">
                 <%= record.changeType %>
               </span>
+            </td>
+            <td>
+              <% if (record.orderId && record.orderId.discountAmount > 0) { %>
+                <span style="color: #dc3545; font-weight: bold;">
+                  -$<%= record.orderId.discountAmount.toFixed(2) %>
+                </span>
+                <% if (record.orderId.couponCode) { %>
+                  <br><small style="color: #666;">(<%= record.orderId.couponCode %>)</small>
+                <% } %>
+              <% } else { %>
+                -
+              <% } %>
             </td>
             <td>
               <% if (record.adminId) { %>
