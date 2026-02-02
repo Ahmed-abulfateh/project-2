@@ -3,12 +3,28 @@
 <head>
   <title>Admin Dashboard - Orders</title>
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      border: 1px solid #c3e6cb;
+    }
+  </style>
 </head>
 <body>
   <%- include('../navbar.ejs') %>
   
   <div class="container">
     <h1>Admin Dashboard - Manage Orders</h1>
+    
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="success-message">
+        ✓ <%= success %>
+      </div>
+    <% } %>
     
     <table class="orders-table admin-table">
       <thead>
@@ -66,5 +82,27 @@
       </tbody>
     </table>
   </div>
+
+  <script>
+    // Preserve scroll position when page reloads
+    window.addEventListener('beforeunload', function() {
+      sessionStorage.setItem('scrollPosition', window.scrollY);
+    });
+
+    window.addEventListener('load', function() {
+      const scrollPosition = sessionStorage.getItem('scrollPosition');
+      if (scrollPosition) {
+        window.scrollTo(0, parseInt(scrollPosition));
+        sessionStorage.removeItem('scrollPosition');
+      }
+    });
+
+    // Form submission preservation
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', function(e) {
+        sessionStorage.setItem('scrollPosition', window.scrollY);
+      });
+    });
+  </script>
 </body>
 </html>

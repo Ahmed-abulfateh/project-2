@@ -119,7 +119,8 @@ async function getAllOrders(req, res) {
     const orders = await Order.find()
       .populate("customer")
       .populate("items.product");
-    res.render("orders/admin.ejs", { orders });
+    const success = req.query.success || null;
+    res.render("orders/admin.ejs", { orders, success });
   } catch (error) {
     console.log(error);
     res.send(error);
@@ -174,7 +175,7 @@ async function acceptOrder(req, res) {
       // Continue even if email fails
     }
 
-    res.redirect("/orders/admin/dashboard");
+    res.redirect("/orders/admin/dashboard?success=Order accepted");
   } catch (error) {
     console.log(error);
     res.send(error);
@@ -229,7 +230,7 @@ async function rejectOrder(req, res) {
       // Continue even if email fails
     }
     
-    res.redirect("/orders/admin/dashboard");
+    res.redirect("/orders/admin/dashboard?success=Order rejected");
   } catch (error) {
     console.log(error);
     res.send(error);
@@ -259,7 +260,7 @@ async function updateDeliveryStatus(req, res) {
       // Continue even if email fails
     }
     
-    res.redirect("/orders/admin/dashboard");
+    res.redirect("/orders/admin/dashboard?success=Delivery status updated");
   } catch (error) {
     console.log(error);
     res.send(error);
