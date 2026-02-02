@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const usersController = require("../controllers/users.js");
-const isAdmin = require("../middleware/is-admin.js");
+const isAhmed = require("../middleware/is-ahmed.js");
 
-router.use(isAdmin);
+router.use(isAhmed);
 
 router.get("/admin", usersController.getAllUsers);
 router.get("/admin/:id/edit", usersController.getEditUser);
