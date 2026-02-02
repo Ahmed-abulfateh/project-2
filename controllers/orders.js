@@ -116,7 +116,7 @@ async function getOrderDetail(req, res) {
 // Admin: Get all orders
 async function getAllOrders(req, res) {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, orderStatus } = req.query;
     const filter = {};
 
     if (startDate || endDate) {
@@ -131,12 +131,16 @@ async function getAllOrders(req, res) {
       }
     }
 
+    if (orderStatus && orderStatus !== "all") {
+      filter.orderStatus = orderStatus;
+    }
+
     const orders = await Order.find(filter)
       .populate("customer")
       .populate("items.product")
       .sort({ createdAt: -1 });
     const success = req.query.success || null;
-    res.render("orders/admin.ejs", { orders, success, startDate, endDate });
+    res.render("orders/admin.ejs", { orders, success, startDate, endDate, orderStatus });
   } catch (error) {
     console.log(error);
     res.send(error);
