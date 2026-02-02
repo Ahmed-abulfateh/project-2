@@ -149,6 +149,9 @@ router.get("/admin/stock-history", isSignedIn, isAdmin, async (req, res) => {
 
     const categoryTotals = {};
     let totalProfit = 0;
+    
+    // Track discounts per order to avoid double counting
+    const orderDiscounts = {};
 
     summarySource.forEach(record => {
       if (record.product && record.product.category) {
@@ -167,6 +170,16 @@ router.get("/admin/stock-history", isSignedIn, isAdmin, async (req, res) => {
           const profit = Math.abs(record.quantity) * record.product.price;
           categoryTotals[category].profit += profit;
           totalProfit += profit;
+          
+          // Subtract coupon discount from profit (only once per order)
+          if (record.orderId && record.orderId.discountAmount) {
+            const orderId = record.orderId._id.toString();
+            if (!orderDiscounts[orderId]) {
+              orderDiscounts[orderId] = record.orderId.discountAmount;
+              categoryTotals[category].profit -= record.orderId.discountAmount;
+              totalProfit -= record.orderId.discountAmount;
+            }
+          }
         }
       }
     });

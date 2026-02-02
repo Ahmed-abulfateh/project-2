@@ -335,9 +335,9 @@
       <tbody>
         <% history.forEach(record => { %>
           <tr>
-            <td><%= record.product.name %></td>
-            <td><%= record.product.category %></td>
-            <td>$<%= record.product.price.toFixed(2) %></td>
+            <td><%= record.product ? record.product.name : '[Deleted Product]' %></td>
+            <td><%= record.product ? record.product.category : 'N/A' %></td>
+            <td><%= record.product ? '$' + record.product.price.toFixed(2) : 'N/A' %></td>
             <td class="<%= record.quantity > 0 ? 'positive' : 'negative' %>">
               <%= record.quantity > 0 ? '+' : '' %><%= record.quantity %>
             </td>

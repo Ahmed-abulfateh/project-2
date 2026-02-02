@@ -203,7 +203,9 @@
       <div class="cart-summary">
         <div class="cart-total">Total: $<%= totalPrice.toFixed(2) %></div>
         
-        <form action="/orders" method="POST" class="checkout-form">
+        <form action="/orders" method="POST" class="checkout-form" id="checkoutForm">
+          <input type="hidden" name="appliedCoupon" id="appliedCouponField" value="">
+          <input type="hidden" name="discountAmount" id="discountAmountField" value="0">
           <h2>Delivery Address</h2>
                    <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #ddd;">
                      <h3 style="margin-top: 0;">Apply Coupon Code</h3>
@@ -304,6 +306,10 @@
            appliedCoupon = code;
            discountAmount = parseFloat(data.discount);
            
+           // Update hidden fields
+           document.getElementById('appliedCouponField').value = code;
+           document.getElementById('discountAmountField').value = discountAmount;
+           
            messageDiv.textContent = data.message;
            messageDiv.style.background = '#d4edda';
            messageDiv.style.color = '#155724';
@@ -333,6 +339,11 @@
      function removeCoupon() {
        appliedCoupon = null;
        discountAmount = 0;
+       
+       // Clear hidden fields
+       document.getElementById('appliedCouponField').value = '';
+       document.getElementById('discountAmountField').value = '0';
+       
        document.getElementById('couponCode').value = '';
        document.getElementById('couponCode').disabled = false;
        document.getElementById('applyCouponBtn').disabled = false;

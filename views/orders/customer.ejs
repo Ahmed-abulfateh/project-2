@@ -31,7 +31,7 @@
               <td><%= order._id %></td>
               <td>
                 <% order.items.forEach(item => { %>
-                  <div><%= item.product.name %> x <%= item.quantity %></div>
+                  <div><%= item.product ? item.product.name : '[Deleted Product]' %> x <%= item.quantity %></div>
                 <% }) %>
               </td>
               <td>$<%= order.totalPrice %></td>

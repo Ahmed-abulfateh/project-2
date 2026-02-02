@@ -284,4 +284,66 @@ const sendDeliveryStatusEmail = async (email, orderDetails) => {
   return transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendVerificationEmail, sendOrderConfirmationEmail, sendPasswordResetEmail, sendEmailChangeVerification, sendUsernameEmail, sendOrderAcceptedEmail, sendDeliveryStatusEmail };
+const sendOrderRejectedEmail = async (email, orderDetails) => {
+  const itemsList = orderDetails.items.map(item => 
+    `<tr>
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.productName}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">$${item.price}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
+    </tr>`
+  ).join('');
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: `Order Rejected - Order ID: ${orderDetails.orderId}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+        <div style="background-color: white; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <h2 style="color: #dc3545; margin-bottom: 15px;">✗ Your Order Has Been Rejected</h2>
+          <p style="color: #666; font-size: 16px; margin-bottom: 20px;">Unfortunately, your order could not be processed and has been rejected. Stock has been restored and you can place a new order at any time.</p>
+          
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <p style="margin: 5px 0;"><strong>Order ID:</strong> ${orderDetails.orderId}</p>
+            <p style="margin: 5px 0;"><strong>Delivery Address:</strong> ${orderDetails.deliveryAddress}</p>
+          </div>
+          
+          <h3 style="color: #333; margin-top: 20px;">Order Items:</h3>
+          <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+            <thead>
+              <tr style="background-color: #f0f0f0;">
+                <th style="padding: 10px; text-align: left;">Product</th>
+                <th style="padding: 10px; text-align: center;">Qty</th>
+                <th style="padding: 10px; text-align: right;">Price</th>
+                <th style="padding: 10px; text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsList}
+            </tbody>
+            <tfoot>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="3" style="padding: 15px; text-align: right;">Total Amount:</td>
+                <td style="padding: 15px; text-align: right;">$${orderDetails.totalPrice}</td>
+              </tr>
+            </tfoot>
+          </table>
+          
+          <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+            <p style="color: #856404; margin: 0;">Please feel free to contact our support team if you have any questions about this rejection.</p>
+          </div>
+          
+          <p style="color: #999; font-size: 13px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+            We appreciate your interest in our store!<br>
+            If you have any questions, please don't hesitate to contact our support team.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendVerificationEmail, sendOrderConfirmationEmail, sendPasswordResetEmail, sendEmailChangeVerification, sendUsernameEmail, sendOrderAcceptedEmail, sendDeliveryStatusEmail, sendOrderRejectedEmail };

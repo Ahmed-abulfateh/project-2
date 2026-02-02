@@ -294,7 +294,7 @@ async function updateProduct(req, res) {
 async function deleteProduct(req, res) {
   try {
     await Product.findByIdAndDelete(req.params.id);
-    res.redirect("/admin/products");
+    res.redirect("/products/admin/dashboard");
   } catch (error) {
     console.log(error);
     res.send(error);

@@ -2,12 +2,13 @@ const Order = require("../models/Order");
 const Product = require("../models/Product");
 const StockHistory = require("../models/StockHistory");
 const User = require("../models/User");
-const { sendOrderAcceptedEmail, sendDeliveryStatusEmail, sendOrderConfirmationEmail } = require("../utils/email");
+const { sendOrderAcceptedEmail, sendDeliveryStatusEmail, sendOrderConfirmationEmail, sendOrderRejectedEmail } = require("../utils/email");
+const { incrementCouponUsage } = require("./coupons");
 
 // Customer: Create new order from cart
 async function createOrder(req, res) {
   try {
-    const { deliveryAddress } = req.body;
+    const { deliveryAddress, appliedCoupon, discountAmount } = req.body;
     
     // Check if cart is empty
     if (!req.session.cart || req.session.cart.length === 0) {
@@ -36,14 +37,25 @@ async function createOrder(req, res) {
       totalPrice += product.price * cartItem.quantity;
     }
 
+    // Apply coupon discount if present
+    const discount = parseFloat(discountAmount) || 0;
+    const finalTotal = totalPrice - discount;
+
     const newOrder = new Order({
       customer: req.session.user._id,
       items: orderItems,
-      totalPrice,
+      totalPrice: finalTotal,
+      couponCode: appliedCoupon || null,
+      discountAmount: discount,
       deliveryAddress,
     });
 
     await newOrder.save();
+
+    // Increment coupon usage if a coupon was applied
+    if (appliedCoupon) {
+      await incrementCouponUsage(appliedCoupon);
+    }
 
     // Send order confirmation email to customer
     try {
@@ -162,7 +174,7 @@ async function acceptOrder(req, res) {
       // Continue even if email fails
     }
 
-    res.redirect("/products");
+    res.redirect("/orders/admin/dashboard");
   } catch (error) {
     console.log(error);
     res.send(error);
@@ -172,18 +184,20 @@ async function acceptOrder(req, res) {
 // Admin: Reject order
 async function rejectOrder(req, res) {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id)
+      .populate("customer")
+      .populate("items.product");
     
     // Restore stock and create history
     for (const item of order.items) {
       await Product.findByIdAndUpdate(
-        item.product,
+        item.product._id,
         { $inc: { stock: item.quantity } }
       );
       
       // Record stock restoration in history
       await StockHistory.create({
-        product: item.product,
+        product: item.product._id,
         quantity: item.quantity,
         changeType: "order-rejected",
         adminId: req.session.user._id,
@@ -198,7 +212,24 @@ async function rejectOrder(req, res) {
       { new: true }
     );
     
-    res.redirect("/admin/orders");
+    // Send email to customer
+    try {
+      await sendOrderRejectedEmail(order.customer.email, {
+        orderId: order._id,
+        deliveryAddress: order.deliveryAddress,
+        items: order.items.map(item => ({
+          productName: item.product.name,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        totalPrice: order.totalPrice.toFixed(2)
+      });
+    } catch (emailError) {
+      console.log("Failed to send order rejection email:", emailError);
+      // Continue even if email fails
+    }
+    
+    res.redirect("/orders/admin/dashboard");
   } catch (error) {
     console.log(error);
     res.send(error);
