@@ -92,6 +92,14 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  passwordChangeOTPAttempts: {
+    type: Number,
+    default: 0,
+  },
+  passwordChangeOTPAttemptsResetAt: {
+    type: Date,
+    default: null,
+  },
 }, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);

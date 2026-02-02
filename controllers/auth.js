@@ -382,10 +382,30 @@ router.post("/change-password/request-otp", async (req, res) => {
       return res.send("Please verify your email first. <a href='/'>Back to Home</a>");
     }
 
+    // Check OTP rate limit (5 attempts per 24 hours)
+    const now = Date.now();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+
+    if (user.passwordChangeOTPAttemptsResetAt && (now - user.passwordChangeOTPAttemptsResetAt.getTime()) > twentyFourHours) {
+      // Reset counter after 24 hours
+      user.passwordChangeOTPAttempts = 0;
+      user.passwordChangeOTPAttemptsResetAt = new Date(now);
+    } else if (!user.passwordChangeOTPAttemptsResetAt) {
+      // Initialize reset timestamp
+      user.passwordChangeOTPAttemptsResetAt = new Date(now);
+    }
+
+    if (user.passwordChangeOTPAttempts >= 5) {
+      const timeLeft = twentyFourHours - (now - user.passwordChangeOTPAttemptsResetAt.getTime());
+      const hoursLeft = Math.ceil(timeLeft / (60 * 60 * 1000));
+      return res.send(`Too many OTP requests. Please try again in ${hoursLeft} hour(s). <a href='/'>Back to Home</a>`);
+    }
+
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     user.passwordChangeOTP = otp;
     user.passwordChangeOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    user.passwordChangeOTPAttempts += 1;
     await user.save();
 
     // Send OTP email
