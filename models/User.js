@@ -84,6 +84,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  passwordChangeOTP: {
+    type: String,
+    default: null,
+  },
+  passwordChangeOTPExpires: {
+    type: Date,
+    default: null,
+  },
 }, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);

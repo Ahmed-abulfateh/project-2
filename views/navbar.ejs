@@ -35,6 +35,9 @@
             <span class="user-name">👤 <%= user.username %></span>
             <div class="dropdown-content">
               <a href="/auth/address-profile">Address Profile</a>
+              <% if (user.isEmailVerified) { %>
+                <a href="/auth/change-password">Change Password</a>
+              <% } %>
               <% if (!user.isEmailVerified) { %>
                 <a href="/auth/change-email">Change Email</a>
               <% } %>

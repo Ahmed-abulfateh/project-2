@@ -346,4 +346,31 @@ const sendOrderRejectedEmail = async (email, orderDetails) => {
   return transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendVerificationEmail, sendOrderConfirmationEmail, sendPasswordResetEmail, sendEmailChangeVerification, sendUsernameEmail, sendOrderAcceptedEmail, sendDeliveryStatusEmail, sendOrderRejectedEmail };
+const sendPasswordChangeOTP = async (email, otp) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Password Change OTP",
+    html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+        <div style="background-color: white; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-bottom: 15px;">Password Change Request</h2>
+          <p style="color: #666; font-size: 16px; margin-bottom: 20px;">You requested to change your password. Use the OTP code below to proceed:</p>
+          
+          <div style="background-color: #f0f0f0; padding: 20px; text-align: center; border-radius: 5px; margin: 20px 0;">
+            <span style="font-size: 32px; font-weight: bold; color: #007bff; letter-spacing: 5px;">${otp}</span>
+          </div>
+          
+          <p style="color: #999; font-size: 13px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+            This OTP expires in 10 minutes.<br>
+            If you didn't request this, please ignore this email.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendVerificationEmail, sendOrderConfirmationEmail, sendPasswordResetEmail, sendEmailChangeVerification, sendUsernameEmail, sendOrderAcceptedEmail, sendDeliveryStatusEmail, sendOrderRejectedEmail, sendPasswordChangeOTP };

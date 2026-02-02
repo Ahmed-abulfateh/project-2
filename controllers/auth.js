@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require("../models/User.js");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const { sendVerificationEmail, sendPasswordResetEmail, sendEmailChangeVerification, sendUsernameEmail } = require("../utils/email.js");
+const { sendVerificationEmail, sendPasswordResetEmail, sendEmailChangeVerification, sendUsernameEmail, sendPasswordChangeOTP } = require("../utils/email.js");
 
 
 // Sign up routes
@@ -356,6 +356,113 @@ router.post("/address-profile", async (req, res) => {
   } catch (error) {
     console.log(error);
     res.send("Error saving address. Please try again. <a href='/auth/address-profile'>Back</a>");
+  }
+});
+
+// Change Password with OTP
+router.get("/change-password", (req, res) => {
+  if (!req.session.user) {
+    return res.redirect("/auth/sign-in");
+  }
+  res.render("auth/change-password.ejs", { step: 'request' });
+});
+
+router.post("/change-password/request-otp", async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.redirect("/auth/sign-in");
+    }
+
+    const user = await User.findById(req.session.user._id);
+    if (!user) {
+      return res.send("User not found. <a href='/auth/sign-in'>Sign In</a>");
+    }
+
+    if (!user.isEmailVerified) {
+      return res.send("Please verify your email first. <a href='/'>Back to Home</a>");
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.passwordChangeOTP = otp;
+    user.passwordChangeOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await user.save();
+
+    // Send OTP email
+    try {
+      await sendPasswordChangeOTP(user.email, otp);
+      res.render("auth/change-password.ejs", { step: 'verify', message: 'OTP sent to your email' });
+    } catch (error) {
+      console.log("Email sending error:", error);
+      res.send("Error sending OTP. Please try again later. <a href='/auth/change-password'>Try Again</a>");
+    }
+  } catch (error) {
+    console.log(error);
+    res.send("An error occurred. Please try again. <a href='/auth/change-password'>Try Again</a>");
+  }
+});
+
+router.post("/change-password/verify-otp", async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.redirect("/auth/sign-in");
+    }
+
+    const { otp } = req.body;
+    const user = await User.findById(req.session.user._id);
+
+    if (!user) {
+      return res.send("User not found. <a href='/auth/sign-in'>Sign In</a>");
+    }
+
+    if (!user.passwordChangeOTP || user.passwordChangeOTPExpires < Date.now()) {
+      return res.render("auth/change-password.ejs", { step: 'verify', error: 'OTP expired. Please request a new one.' });
+    }
+
+    if (user.passwordChangeOTP !== otp) {
+      return res.render("auth/change-password.ejs", { step: 'verify', error: 'Invalid OTP. Please try again.' });
+    }
+
+    // OTP verified, allow password change
+    res.render("auth/change-password.ejs", { step: 'change', message: 'OTP verified. Enter your new password.' });
+  } catch (error) {
+    console.log(error);
+    res.send("An error occurred. Please try again. <a href='/auth/change-password'>Try Again</a>");
+  }
+});
+
+router.post("/change-password/update", async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.redirect("/auth/sign-in");
+    }
+
+    const { newPassword, confirmPassword } = req.body;
+
+    if (newPassword !== confirmPassword) {
+      return res.render("auth/change-password.ejs", { step: 'change', error: 'Passwords do not match.' });
+    }
+
+    const user = await User.findById(req.session.user._id);
+    if (!user) {
+      return res.send("User not found. <a href='/auth/sign-in'>Sign In</a>");
+    }
+
+    if (!user.passwordChangeOTP || user.passwordChangeOTPExpires < Date.now()) {
+      return res.send("OTP expired. Please start again. <a href='/auth/change-password'>Try Again</a>");
+    }
+
+    // Update password
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+    user.password = hashedPassword;
+    user.passwordChangeOTP = null;
+    user.passwordChangeOTPExpires = null;
+    await user.save();
+
+    res.send("Password changed successfully! <a href='/'>Back to Home</a>");
+  } catch (error) {
+    console.log(error);
+    res.send("Error changing password. Please try again. <a href='/auth/change-password'>Try Again</a>");
   }
 });
 
