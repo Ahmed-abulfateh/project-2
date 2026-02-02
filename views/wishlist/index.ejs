@@ -355,7 +355,7 @@
     }
 
     function addToCart(productId, productName) {
-      fetch('/cart', {
+      fetch('/cart/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
