@@ -8,7 +8,10 @@
   <%- include('../navbar.ejs') %>
   
   <div class="container">
-    <h1>Order Details</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h1>Order Details</h1>
+      <a href="/orders/admin/dashboard" class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px;">← Back to Manage Orders</a>
+    </div>
     
     <div class="order-details">
       <h3>Order ID: <%= order._id %></h3>
@@ -39,14 +42,20 @@
 
       <div class="order-section">
         <h4>Order Information</h4>
-        <p><strong>Total Price:</strong> $<%= order.totalPrice %></p>
+        <p><strong>Total Price:</strong> $<%= order.totalPrice.toFixed(2) %></p>
+        <% if (order.discountAmount && order.discountAmount > 0) { %>
+          <p><strong>Discount:</strong> <span style="color: #28a745;">-$<%= order.discountAmount.toFixed(2) %></span></p>
+          <% if (order.couponCode) { %>
+            <p><strong>Coupon Code:</strong> <span style="color: #007bff;"><%= order.couponCode %></span></p>
+          <% } %>
+        <% } %>
         <p><strong>Delivery Address:</strong> <%= order.deliveryAddress %></p>
         <p><strong>Order Status:</strong> <span class="status status-<%= order.orderStatus %>"><%= order.orderStatus %></span></p>
         <p><strong>Delivery Status:</strong> <span class="status status-<%= order.deliveryStatus %>"><%= order.deliveryStatus %></span></p>
         <p><strong>Ordered On:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
       </div>
 
-      <a href="/orders" class="btn btn-secondary">Back to Orders</a>
+      <a href="/orders/admin/dashboard" class="btn btn-secondary">← Back to Manage Orders</a>
     </div>
   </div>
 </body>
