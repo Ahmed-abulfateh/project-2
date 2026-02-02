@@ -26,6 +26,20 @@
       </div>
     <% } %>
 
+    <div class="admin-section">
+      <h3>Search Users</h3>
+      <form action="/users/admin" method="GET" style="margin-top: 0;">
+        <div class="form-group">
+          <label for="search">Search by Username or Email</label>
+          <input type="text" id="search" name="search" placeholder="Enter username or email" value="<%= search || '' %>">
+        </div>
+        <div class="button-group" style="margin-top: 0;">
+          <button class="btn btn-primary" type="submit">Search</button>
+          <a href="/users/admin" class="btn btn-secondary">Clear</a>
+        </div>
+      </form>
+    </div>
+
     <table class="orders-table admin-table">
       <thead>
         <tr>
