@@ -83,7 +83,8 @@ router.post("/sign-in", async (req, res) => {
     email: userInDatabase.email,
     role: userInDatabase.role,
     _id: userInDatabase._id,
-    isEmailVerified: userInDatabase.isEmailVerified
+    isEmailVerified: userInDatabase.isEmailVerified,
+    address: userInDatabase.address || ""
   };
 
   res.redirect("/");
