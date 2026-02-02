@@ -33,6 +33,14 @@
           <label for="search">Search by Username or Email</label>
           <input type="text" id="search" name="search" placeholder="Enter username or email" value="<%= search || '' %>">
         </div>
+        <div class="form-group">
+          <label for="role">Filter by Role</label>
+          <select id="role" name="role">
+            <option value="all" <%= (!role || role === 'all') ? 'selected' : '' %>>All</option>
+            <option value="admin" <%= role === 'admin' ? 'selected' : '' %>>Admin</option>
+            <option value="customer" <%= role === 'customer' ? 'selected' : '' %>>Customer</option>
+          </select>
+        </div>
         <div class="button-group" style="margin-top: 0;">
           <button class="btn btn-primary" type="submit">Search</button>
           <a href="/users/admin" class="btn btn-secondary">Clear</a>

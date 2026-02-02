@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 // Admin: List users
 async function getAllUsers(req, res) {
   try {
-    const { search } = req.query;
+    const { search, role } = req.query;
     const filter = {};
 
     if (search) {
@@ -14,9 +14,13 @@ async function getAllUsers(req, res) {
       ];
     }
 
+    if (role && role !== "all") {
+      filter.role = role;
+    }
+
     const users = await User.find(filter).sort({ createdAt: -1 });
     const success = req.query.success || null;
-    res.render("users/admin.ejs", { users, success, search });
+    res.render("users/admin.ejs", { users, success, search, role });
   } catch (error) {
     console.log(error);
     res.send(error);
