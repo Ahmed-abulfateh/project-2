@@ -185,6 +185,7 @@
               <td>$<%= item.price %></td>
               <td>
                 <form action="/cart/<%= item.productId %>?_method=PUT" method="POST" style="display: inline;">
+                  <input type="hidden" name="variantKey" value="<%= item.variantKey || '' %>">
                   <input type="number" name="quantity" value="<%= item.quantity %>" min="1" class="quantity-input">
                   <button type="submit" class="btn btn-secondary" style="padding: 5px 10px; width: auto;">Update</button>
                 </form>

@@ -91,20 +91,52 @@ async function viewCart(req, res) {
 // Update cart item quantity
 async function updateCartItem(req, res) {
   try {
-    const { productId, quantity } = req.body;
-    const newQuantity = parseInt(quantity);
+    const { quantity, variantKey } = req.body;
+    const { productId } = req.params;
+    const newQuantity = parseInt(quantity, 10);
+
+    if (Number.isNaN(newQuantity) || newQuantity < 1) {
+      return res.send("Invalid quantity");
+    }
+
+    const normalizedVariantKey = variantKey || "";
+
+    // Find cart item (variant-aware)
+    const cartItem = req.session.cart.find(
+      item => item.productId === productId && (item.variantKey || "") === normalizedVariantKey
+    );
+
+    if (!cartItem) {
+      return res.send("Cart item not found");
+    }
 
     // Validate stock
     const product = await Product.findById(productId);
-    if (!product || product.stock < newQuantity) {
+    if (!product) {
+      return res.send("Product not found");
+    }
+
+    let availableStock = product.stock;
+    if (product.hasVariants && product.variants.length > 0) {
+      const size = cartItem.size ?? null;
+      const color = cartItem.color ?? null;
+      const variant = product.variants.find(
+        v => v.size === (size || null) && v.color === (color || null)
+      );
+
+      if (!variant) {
+        return res.send("Selected variant not found");
+      }
+
+      availableStock = variant.stock;
+    }
+
+    if (availableStock < newQuantity) {
       return res.send("Insufficient stock");
     }
 
     // Update quantity
-    const cartItem = req.session.cart.find(item => item.productId === productId);
-    if (cartItem) {
-      cartItem.quantity = newQuantity;
-    }
+    cartItem.quantity = newQuantity;
 
     res.redirect("/cart");
   } catch (error) {
