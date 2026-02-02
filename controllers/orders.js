@@ -116,11 +116,27 @@ async function getOrderDetail(req, res) {
 // Admin: Get all orders
 async function getAllOrders(req, res) {
   try {
-    const orders = await Order.find()
+    const { startDate, endDate } = req.query;
+    const filter = {};
+
+    if (startDate || endDate) {
+      filter.createdAt = {};
+
+      if (startDate) {
+        filter.createdAt.$gte = new Date(`${startDate}T00:00:00.000Z`);
+      }
+
+      if (endDate) {
+        filter.createdAt.$lte = new Date(`${endDate}T23:59:59.999Z`);
+      }
+    }
+
+    const orders = await Order.find(filter)
       .populate("customer")
-      .populate("items.product");
+      .populate("items.product")
+      .sort({ createdAt: -1 });
     const success = req.query.success || null;
-    res.render("orders/admin.ejs", { orders, success });
+    res.render("orders/admin.ejs", { orders, success, startDate, endDate });
   } catch (error) {
     console.log(error);
     res.send(error);
