@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit User</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('../navbar.ejs') %>
+
+  <div class="container">
+    <h1>Edit User Profile</h1>
+
+    <form method="POST" action="/users/admin/<%= managedUser._id %>?_method=PUT">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" value="<%= managedUser.username %>" required>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" value="<%= managedUser.email %>" required>
+      </div>
+
+      <div class="form-group">
+        <label>Role</label>
+        <select name="role">
+          <option value="customer" <%= managedUser.role === 'customer' ? 'selected' : '' %>>Customer</option>
+          <option value="admin" <%= managedUser.role === 'admin' ? 'selected' : '' %>>Admin</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Email Verified</label>
+        <input type="checkbox" name="isEmailVerified" <%= managedUser.isEmailVerified ? 'checked' : '' %>>
+      </div>
+
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" name="phone" value="<%= managedUser.phone || '' %>">
+      </div>
+
+      <div class="form-group">
+        <label>Address</label>
+        <textarea name="address"><%= managedUser.address || '' %></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Bio</label>
+        <textarea name="bio"><%= managedUser.bio || '' %></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="/users/admin" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+
+    <form method="POST" action="/users/admin/<%= managedUser._id %>?_method=DELETE" style="margin-top: 20px;">
+      <div class="form-group">
+        <label>Confirm Admin Password to Delete</label>
+        <input type="password" name="adminPassword" placeholder="Admin password" required>
+      </div>
+      <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this user?')">Delete User</button>
+    </form>
+  </div>
+</body>
+</html>

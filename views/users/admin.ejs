@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard - Users</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      border: 1px solid #c3e6cb;
+    }
+  </style>
+</head>
+<body>
+  <%- include('../navbar.ejs') %>
+
+  <div class="container">
+    <h1>Admin Dashboard - Manage Users</h1>
+
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="success-message">
+        ✓ <%= success %>
+      </div>
+    <% } %>
+
+    <table class="orders-table admin-table">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Email Verified</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(managedUser => { %>
+          <tr>
+            <td><%= managedUser.username %></td>
+            <td><%= managedUser.email %></td>
+            <td><%= managedUser.role %></td>
+            <td><%= managedUser.isEmailVerified ? 'Yes' : 'No' %></td>
+            <td><%= new Date(managedUser.createdAt).toLocaleDateString() %></td>
+            <td>
+              <a href="/users/admin/<%= managedUser._id %>/edit" class="btn btn-info">Edit</a>
+              <form action="/users/admin/<%= managedUser._id %>?_method=DELETE" method="POST" style="display:inline;">
+                <input type="password" name="adminPassword" placeholder="Admin password" required>
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this user?')">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
