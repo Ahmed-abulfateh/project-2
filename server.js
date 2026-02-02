@@ -30,7 +30,7 @@ app.use((req, res, next) => {
 
 // Rate limiting for auth routes
 const authAttempts = new Map();
-const AUTH_LIMIT = 10;
+const AUTH_LIMIT = 20;
 const AUTH_WINDOW = 15 * 60 * 1000; // 15 minutes
 
 const rateLimiter = (req, res, next) => {
