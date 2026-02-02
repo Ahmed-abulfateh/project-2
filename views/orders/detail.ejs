@@ -10,7 +10,11 @@
   <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <h1>Order Details</h1>
-      <a href="/orders/admin/dashboard" class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px;">← Back to Manage Orders</a>
+      <% if (user.role === 'admin') { %>
+        <a href="/orders/admin/dashboard" class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px;">← Back to Manage Orders</a>
+      <% } else { %>
+        <a href="/orders" class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px;">← Back to My Orders</a>
+      <% } %>
     </div>
     
     <div class="order-details">
@@ -55,7 +59,11 @@
         <p><strong>Ordered On:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
       </div>
 
-      <a href="/orders/admin/dashboard" class="btn btn-secondary">← Back to Manage Orders</a>
+      <% if (user.role === 'admin') { %>
+        <a href="/orders/admin/dashboard" class="btn btn-secondary">← Back to Manage Orders</a>
+      <% } else { %>
+        <a href="/orders" class="btn btn-secondary">← Back to My Orders</a>
+      <% } %>
     </div>
   </div>
 </body>
